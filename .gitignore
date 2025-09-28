@@ -2,3 +2,4 @@ __pycache__/
 /src/tmp/
 /src/venv/
 /src/*/transmuter/front/aether/*.py.new
+/src/*/ignea/front/aether/*.py.new
