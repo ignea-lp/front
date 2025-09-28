@@ -1,6 +1,6 @@
-# Transmuter front-end, front-end libraries and utilities for the
-# Transmuter language processing infrastructure
-# Copyright (C) 2025  The Transmuter Project
+# Ignea front-end, front-end libraries and utilities for the
+# Ignea language processing infrastructure
+# Copyright (C) 2025  The Ignea Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-ROOT=transmuter/front/aether
+ROOT=$(CURRENT_PKG)/front/aether
 PYTHON_VERSION=3.12.3
 BLACK_VERSION=25.1.0
 
@@ -32,7 +32,7 @@ generate: $(ROOT)/common.py $(ROOT)/lexical.py $(ROOT)/syntactic.py
 
 $(ROOT)/common.py $(ROOT)/lexical.py $(ROOT)/syntactic.py: ../$(PREVIOUS_SPEC) ../$(PREVIOUS_LIB) ../$(PREVIOUS_SRC_VERSION)/ ../venv/
 	[ "$$(python3 --version)" = 'Python $(PYTHON_VERSION)' ]
-	cd .. && PYTHONPATH='$(PREVIOUS_LIB)':'$(PREVIOUS_SRC_VERSION)/' python3 -m transmuter.front.aether -L python -o $(src_version)/$(ROOT)/ '$(PREVIOUS_SPEC)'
+	cd .. && PYTHONPATH='$(PREVIOUS_LIB)':'$(PREVIOUS_SRC_VERSION)/' python3 -m $(PREVIOUS_PKG).front.aether -L python -o $(src_version)/$(ROOT)/ '$(PREVIOUS_SPEC)'
 	. ../venv/bin/activate && cd $(ROOT)/ && black -l 79 common.py lexical.py syntactic.py
 
 ../venv/:
@@ -59,7 +59,7 @@ patch-licenses:
 	cd $(ROOT)/ && patch -N -r - -p 0 < ../../../licenses.patch || [ $$? = 1 ]
 
 verify:
-	cd .. && ../tools/bootstrap/verify '$(PREVIOUS_SPEC)' '$(PREVIOUS_LIB)' '$(PREVIOUS_SRC_VERSION)/' $(CURRENT_SPEC) $(CURRENT_LIB) $(src_version)/ $(RELEASE_TYPE)
+	cd .. && ../tools/bootstrap/verify '$(PREVIOUS_PKG)' '$(PREVIOUS_SPEC)' '$(PREVIOUS_LIB)' '$(PREVIOUS_SRC_VERSION)/' '$(CURRENT_PKG)' $(CURRENT_SPEC) $(CURRENT_LIB) $(src_version)/ $(RELEASE_TYPE)
 
 clean:
 	rm -rf ../venv/

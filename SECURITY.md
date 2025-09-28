@@ -7,4 +7,4 @@
 
 ## How to report a vulnerability
 
-Please report a vulnerability in the security tab on [GitHub](https://github.com/transmuter-lp/front/security/advisories/new).
+Please report a vulnerability in the security tab on [GitHub](https://github.com/ignea-lp/front/security/advisories/new).

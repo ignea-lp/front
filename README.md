@@ -1,6 +1,6 @@
-# Transmuter front-end
+# Ignea front-end
 
-Front-end libraries and utilities for the Transmuter language processing infrastructure.
+Front-end libraries and utilities for the Ignea language processing infrastructure.
 
 ## Features
 

@@ -1,6 +1,6 @@
-# Transmuter front-end, front-end libraries and utilities for the
-# Transmuter language processing infrastructure
-# Copyright (C) 2025  The Transmuter Project
+# Ignea front-end, front-end libraries and utilities for the
+# Ignea language processing infrastructure
+# Copyright (C) 2025  The Ignea Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

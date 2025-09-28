@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Transmuter front-end, front-end libraries and utilities for the
-# Transmuter language processing infrastructure
-# Copyright (C) 2025  The Transmuter Project
+# Ignea front-end, front-end libraries and utilities for the
+# Ignea language processing infrastructure
+# Copyright (C) 2025  The Ignea Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,11 +35,15 @@ invalid_subtype() {
 src_gen='common.py lexical.py syntactic.py'
 src_hand='__init__.py __main__.py semantic.py back/__init__.py back/common.py back/python.py'
 
+pkg_1="$1"
+shift
 spec_1="$1"
 shift
 lib_1="$1"
 shift
 src_1="$1"
+shift
+pkg_2="$1"
 shift
 spec_2="$1"
 shift
@@ -290,25 +294,25 @@ if [ $modify_spec = 0 ] && [ "$spec_1" != "$spec_2" ]; then
 fi
 
 if [ $modify_lib = 0 ] && [ "$lib_1" != "$lib_2" ]; then
-    diff -q -r -x *.pyc "$lib_1/transmuter/front" "$lib_2/transmuter/front"
+    diff -q -r -x *.pyc "$lib_1/$pkg_1/front" "$lib_2/$pkg_2/front"
 fi
 
 if [ $modify_src_gen = 0 ] && [ "$src_1" != "$src_2" ]; then
     for filename in $src_gen; do
-        diff -q "$src_1/transmuter/front/aether/$filename" "$src_2/transmuter/front/aether/$filename"
+        diff -q "$src_1/$pkg_1/front/aether/$filename" "$src_2/$pkg_2/front/aether/$filename"
     done
 fi
 
 if [ $modify_src_hand = 0 ] && [ "$src_1" != "$src_2" ]; then
     for filename in $src_hand; do
-        diff -q "$src_1/transmuter/front/aether/$filename" "$src_2/transmuter/front/aether/$filename"
+        diff -q "$src_1/$pkg_1/front/aether/$filename" "$src_2/$pkg_2/front/aether/$filename"
     done
 fi
 
 mkdir -p tmp/1
 mkdir tmp/2
-PYTHONPATH="$lib_1":"$src_1" python3 -m transmuter.front.aether -L python -o tmp/1 "$spec_1"
-PYTHONPATH="$lib_2":"$src_2" python3 -m transmuter.front.aether -L python -o tmp/2 "$spec_2"
+PYTHONPATH="$lib_1":"$src_1" python3 -m $pkg_1.front.aether -L python -o tmp/1 "$spec_1"
+PYTHONPATH="$lib_2":"$src_2" python3 -m $pkg_2.front.aether -L python -o tmp/2 "$spec_2"
 
 if [ $modify_spec = 0 ] && [ $modify_src_hand != 2 ]; then
     diff -q -r tmp/1 tmp/2

@@ -1,6 +1,6 @@
-# Transmuter front-end, front-end libraries and utilities for the
-# Transmuter language processing infrastructure
-# Copyright (C) 2025  The Transmuter Project
+# Ignea front-end, front-end libraries and utilities for the
+# Ignea language processing infrastructure
+# Copyright (C) 2025  The Ignea Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+PREVIOUS_PKG=transmuter
 PREVIOUS_SPEC_VERSION=1.0.0
 PREVIOUS_LIB_VERSION=1.1.0
 PREVIOUS_SRC_VERSION=1.0.1
+CURRENT_PKG=transmuter
 RELEASE_TYPE=5 1
 
 include ../../tools/bootstrap/Makefile-common
