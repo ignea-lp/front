@@ -16,37 +16,50 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Syntactic analysis library for the Transmuter front-end."""
+"""Syntactic analysis library for the Ignea front-end."""
 
 from dataclasses import dataclass, field
 from typing import ClassVar, NamedTuple
 
 from .common import (
-    TransmuterConditions,
-    TransmuterMeta,
-    TransmuterPosition,
-    TransmuterException,
+    IgneaConditions,
+    IgneaMeta,
+    IgneaPosition,
+    IgneaException,
 )
-from .lexical import TransmuterTerminalTag, TransmuterTerminal, TransmuterLexer
+from .lexical import IgneaTerminalTag, IgneaTerminal, IgneaLexer
 
 __all__ = [
+    "ignea_selection",
     "transmuter_selection",
+    "ignea_compute_sccs",
     "transmuter_compute_sccs",
+    "IgneaNonterminalType",
     "TransmuterNonterminalType",
+    "IgneaParsingState",
     "TransmuterParsingState",
+    "IgneaEPN",
     "TransmuterEPN",
+    "IgneaBSR",
     "TransmuterBSR",
+    "IgneaParser",
     "TransmuterParser",
+    "IgneaSyntacticError",
     "TransmuterSyntacticError",
+    "IgneaNoStartError",
     "TransmuterNoStartError",
+    "IgneaMultipleStartsError",
     "TransmuterMultipleStartsError",
+    "IgneaNoDerivationError",
     "TransmuterNoDerivationError",
+    "IgneaDerivationException",
     "TransmuterDerivationException",
 ]
-transmuter_selection: range = range(1)
+ignea_selection: range = range(1)
+transmuter_selection = ignea_selection
 
 
-def transmuter_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
+def ignea_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
     """
     Tarjan's strongly connected components algorithm.
 
@@ -107,7 +120,10 @@ def transmuter_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
     return sccs
 
 
-class TransmuterNonterminalType(metaclass=TransmuterMeta):
+transmuter_compute_sccs = ignea_compute_sccs
+
+
+class IgneaNonterminalType(metaclass=IgneaMeta):
     """
     Definition and implementation of a nonterminal type.
 
@@ -119,7 +135,7 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
     """
 
     @staticmethod
-    def start(conditions: TransmuterConditions) -> bool:
+    def start(conditions: IgneaConditions) -> bool:
         """
         Returns whether this nonterminal type is the starting symbol.
 
@@ -134,8 +150,8 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
 
     @staticmethod
     def first(
-        conditions: TransmuterConditions,
-    ) -> set[type["TransmuterNonterminalType"]]:
+        conditions: IgneaConditions,
+    ) -> set[type["IgneaNonterminalType"]]:
         """
         Returns nonterminal types appearing first in the production rules.
 
@@ -153,8 +169,8 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
     @classmethod
     def ascend(
         cls,
-        parser: "TransmuterParser",
-        current_state: "TransmuterParsingState",
+        parser: "IgneaParser",
+        current_state: "IgneaParsingState",
     ) -> None:
         """
         Recursively ascends the production rules to handle left-recursion.
@@ -167,7 +183,7 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
             current_state: Current parsing state.
 
         Raises:
-            TransmuterNoTerminalTagError:
+            IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
 
@@ -177,15 +193,15 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
             try:
                 # Ascend recursively
                 parser.derive(ascend_parent, current_states, True)
-            except TransmuterDerivationException:
+            except IgneaDerivationException:
                 pass
 
     @classmethod
     def descend(
         cls,
-        parser: "TransmuterParser",
-        current_state: "TransmuterParsingState",
-    ) -> set["TransmuterParsingState"]:
+        parser: "IgneaParser",
+        current_state: "IgneaParsingState",
+    ) -> set["IgneaParsingState"]:
         """
         Recursively descends the production rules.
 
@@ -196,16 +212,19 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
         Returns: Next parsing states.
 
         Raises:
-            TransmuterNoTerminalTagError:
+            IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
-            TransmuterDerivationException:
+            IgneaDerivationException:
                 Could not derive any production rule.
         """
 
         raise NotImplementedError()
 
 
-class TransmuterParsingState(NamedTuple):
+TransmuterNonterminalType = IgneaNonterminalType
+
+
+class IgneaParsingState(NamedTuple):
     """
     BSR parsing state.
 
@@ -225,10 +244,10 @@ class TransmuterParsingState(NamedTuple):
             starting state.
     """
 
-    string: tuple[type[TransmuterTerminalTag | TransmuterNonterminalType], ...]
-    start_position: TransmuterPosition
-    split_position: TransmuterPosition
-    end_terminal: TransmuterTerminal | None
+    string: tuple[type[IgneaTerminalTag | IgneaNonterminalType], ...]
+    start_position: IgneaPosition
+    split_position: IgneaPosition
+    end_terminal: IgneaTerminal | None
 
     def __repr__(self) -> str:
         """Returns the representation of the parsing state as a tuple."""
@@ -243,7 +262,10 @@ class TransmuterParsingState(NamedTuple):
         )
 
 
-class TransmuterEPN(NamedTuple):
+TransmuterParsingState = IgneaParsingState
+
+
+class IgneaEPN(NamedTuple):
     """
     BSR Extended Packed Node.
 
@@ -254,8 +276,8 @@ class TransmuterEPN(NamedTuple):
         state: Current parsing state.
     """
 
-    type_: type[TransmuterNonterminalType] | None
-    state: TransmuterParsingState
+    type_: type[IgneaNonterminalType] | None
+    state: IgneaParsingState
 
     def __repr__(self) -> str:
         """Returns the representation of the EPN as a tuple."""
@@ -263,8 +285,11 @@ class TransmuterEPN(NamedTuple):
         return repr((self.type_, self.state))
 
 
+TransmuterEPN = IgneaEPN
+
+
 @dataclass
-class TransmuterBSR:
+class IgneaBSR:
     """
     Binary Subtree Representation.
 
@@ -281,25 +306,23 @@ class TransmuterBSR:
 
     start: (
         tuple[
-            type[TransmuterNonterminalType],
-            TransmuterPosition,
-            TransmuterPosition,
+            type[IgneaNonterminalType],
+            IgneaPosition,
+            IgneaPosition,
         ]
         | None
     ) = field(default=None, init=False, repr=False)
     epns: dict[
         tuple[
-            type[TransmuterNonterminalType]
-            | tuple[
-                type[TransmuterTerminalTag | TransmuterNonterminalType], ...
-            ],
-            TransmuterPosition,
-            TransmuterPosition,
+            type[IgneaNonterminalType]
+            | tuple[type[IgneaTerminalTag | IgneaNonterminalType], ...],
+            IgneaPosition,
+            IgneaPosition,
         ],
-        set[TransmuterEPN],
+        set[IgneaEPN],
     ] = field(default_factory=dict, init=False, repr=False)
 
-    def add(self, epn: TransmuterEPN) -> None:
+    def add(self, epn: IgneaEPN) -> None:
         """
         Adds EPN to its respective set.
 
@@ -322,7 +345,7 @@ class TransmuterBSR:
 
         self.epns[key].add(epn)
 
-    def left_children(self, parent: TransmuterEPN) -> set[TransmuterEPN]:
+    def left_children(self, parent: IgneaEPN) -> set[IgneaEPN]:
         """
         Returns left children of parent EPN.
 
@@ -344,7 +367,7 @@ class TransmuterBSR:
 
         return self.epns[key]
 
-    def right_children(self, parent: TransmuterEPN) -> set[TransmuterEPN]:
+    def right_children(self, parent: IgneaEPN) -> set[IgneaEPN]:
         """
         Returns right children of parent EPN.
 
@@ -364,7 +387,7 @@ class TransmuterBSR:
         if (
             parent.state.split_position
             == parent.state.end_terminal.end_position
-            or issubclass(parent.state.string[-1], TransmuterTerminalTag)
+            or issubclass(parent.state.string[-1], IgneaTerminalTag)
             or key not in self.epns
         ):
             return set()
@@ -372,8 +395,11 @@ class TransmuterBSR:
         return self.epns[key]
 
 
+TransmuterBSR = IgneaBSR
+
+
 @dataclass
-class TransmuterParser:
+class IgneaParser:
     """
     Main syntactic analysis implementation.
 
@@ -391,38 +417,36 @@ class TransmuterParser:
         bsr:
             Binary subtree representation of resulting parsing forest.
         _nonterminal_type_start:
-            Result of `TransmuterNonterminalType.start` for all
+            Result of `IgneaNonterminalType.start` for all
             nonterminal types included in syntactic analysis. Only one
             nonterminal type can be the starting symbol.
         _nonterminal_types_first:
-            Result of `TransmuterNonterminalType.first` for all
+            Result of `IgneaNonterminalType.first` for all
             nonterminal types included in syntactic analysis, filtered
             by membership in same left-recursion SCC.
         _eoi: Last terminal symbol derived from production rules.
         _memo:
-            Memoization of `TransmuterNonterminalType.descend` for all
+            Memoization of `IgneaNonterminalType.descend` for all
             nonterminal types included in syntactic analysis.
     """
 
-    NONTERMINAL_TYPES: ClassVar[list[type[TransmuterNonterminalType]]]
+    NONTERMINAL_TYPES: ClassVar[list[type[IgneaNonterminalType]]]
 
-    lexer: TransmuterLexer
+    lexer: IgneaLexer
     nonterminal_types_ascend_parents: dict[
-        type[TransmuterNonterminalType], list[type[TransmuterNonterminalType]]
+        type[IgneaNonterminalType], list[type[IgneaNonterminalType]]
     ] = field(init=False, repr=False)
-    bsr: TransmuterBSR = field(init=False, repr=False)
-    _nonterminal_type_start: type[TransmuterNonterminalType] = field(
+    bsr: IgneaBSR = field(init=False, repr=False)
+    _nonterminal_type_start: type[IgneaNonterminalType] = field(
         init=False, repr=False
     )
     _nonterminal_types_first: dict[
-        type[TransmuterNonterminalType], set[type[TransmuterNonterminalType]]
+        type[IgneaNonterminalType], set[type[IgneaNonterminalType]]
     ] = field(init=False, repr=False)
-    _eoi: TransmuterTerminal | None = field(
-        default=None, init=False, repr=False
-    )
+    _eoi: IgneaTerminal | None = field(default=None, init=False, repr=False)
     _memo: dict[
-        tuple[type[TransmuterNonterminalType], TransmuterPosition],
-        set[TransmuterTerminal],
+        tuple[type[IgneaNonterminalType], IgneaPosition],
+        set[IgneaTerminal],
     ] = field(default_factory=dict, init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -433,15 +457,15 @@ class TransmuterParser:
         `_nonterminal_types_first` and `_nonterminal_type_start`.
 
         Raises:
-            TransmuterMultipleStartsError:
+            IgneaMultipleStartsError:
                 Multiple starting symbols from given conditions.
-            TransmuterNoStartError:
+            IgneaNoStartError:
                 Could not determine starting symbol from given
                 conditions.
         """
 
         self.nonterminal_types_ascend_parents = {}
-        self.bsr = TransmuterBSR()
+        self.bsr = IgneaBSR()
         self._nonterminal_types_first = {}
         nonterminal_type_start = None
         nonterminal_types_first = {}
@@ -449,7 +473,7 @@ class TransmuterParser:
         for nonterminal_type in self.NONTERMINAL_TYPES:
             if nonterminal_type.start(self.lexer.conditions):
                 if nonterminal_type_start is not None:
-                    raise TransmuterMultipleStartsError()
+                    raise IgneaMultipleStartsError()
 
                 nonterminal_type_start = nonterminal_type
 
@@ -458,10 +482,10 @@ class TransmuterParser:
             )
 
         if nonterminal_type_start is None:
-            raise TransmuterNoStartError()
+            raise IgneaNoStartError()
 
         self._nonterminal_type_start = nonterminal_type_start
-        sccs = transmuter_compute_sccs(nonterminal_types_first)
+        sccs = ignea_compute_sccs(nonterminal_types_first)
 
         for scc in sccs:
             if len(scc) == 1:
@@ -486,9 +510,9 @@ class TransmuterParser:
         Performs syntactic analysis on input.
 
         Raises:
-            TransmuterNoTerminalTagError:
+            IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
-            TransmuterNoDerivationError:
+            IgneaNoDerivationError:
                 Could not derive input from any production rule.
         """
 
@@ -496,7 +520,7 @@ class TransmuterParser:
             self.derive(
                 self._nonterminal_type_start,
                 {
-                    TransmuterParsingState(
+                    IgneaParsingState(
                         (),
                         self.lexer.start_position,
                         self.lexer.start_position,
@@ -504,7 +528,7 @@ class TransmuterParser:
                     )
                 },
             )
-        except TransmuterDerivationException:
+        except IgneaDerivationException:
             pass
 
         # If input is empty or only has ignored terminals
@@ -518,21 +542,21 @@ class TransmuterParser:
         )
 
         if key not in self.bsr.epns:
-            raise TransmuterNoDerivationError(self._eoi.start_position)
+            raise IgneaNoDerivationError(self._eoi.start_position)
 
         # If input continues after what was parsed
         if self.lexer.next_terminal(self._eoi) is not None:
             assert self._eoi.next is not None
-            raise TransmuterNoDerivationError(self._eoi.next.start_position)
+            raise IgneaNoDerivationError(self._eoi.next.start_position)
 
         self.bsr.start = key
 
     def derive(
         self,
-        cls: type[TransmuterTerminalTag | TransmuterNonterminalType],
-        current_states: set[TransmuterParsingState],
-        ascend: type[TransmuterNonterminalType] | bool | None = None,
-    ) -> set[TransmuterParsingState]:
+        cls: type[IgneaTerminalTag | IgneaNonterminalType],
+        current_states: set[IgneaParsingState],
+        ascend: type[IgneaNonterminalType] | bool | None = None,
+    ) -> set[IgneaParsingState]:
         """
         Tries to derive terminal tag or nonterminal type from current states.
 
@@ -549,15 +573,15 @@ class TransmuterParser:
         Returns: Next parsing states.
 
         Raises:
-            TransmuterNoTerminalTagError:
+            IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
-            TransmuterDerivationException:
+            IgneaDerivationException:
                 Could not derive any production rule.
         """
 
         next_states = set()
 
-        if issubclass(cls, TransmuterTerminalTag):
+        if issubclass(cls, IgneaTerminalTag):
             for current_state in current_states:
                 next_state = self._derive_single_terminal_tag(
                     cls, current_state
@@ -566,7 +590,7 @@ class TransmuterParser:
                 if next_state is not None:
                     next_states.add(next_state)
         else:
-            assert issubclass(cls, TransmuterNonterminalType)
+            assert issubclass(cls, IgneaNonterminalType)
 
             if not isinstance(ascend, bool):
                 # Determine at runtime if should ascend, preventing
@@ -584,15 +608,15 @@ class TransmuterParser:
                 )
 
         if len(next_states) == 0:
-            raise TransmuterDerivationException()
+            raise IgneaDerivationException()
 
         return next_states
 
     def _derive_single_terminal_tag(
         self,
-        cls: type[TransmuterTerminalTag],
-        current_state: TransmuterParsingState,
-    ) -> TransmuterParsingState | None:
+        cls: type[IgneaTerminalTag],
+        current_state: IgneaParsingState,
+    ) -> IgneaParsingState | None:
         """
         Tries to derive terminal tag from single current state.
 
@@ -605,11 +629,11 @@ class TransmuterParser:
             tag.
 
         Raises:
-            TransmuterNoTerminalTagError:
+            IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
 
-        self.bsr.add(TransmuterEPN(None, current_state))
+        self.bsr.add(IgneaEPN(None, current_state))
         next_terminal = self.lexer.next_terminal(current_state.end_terminal)
 
         if next_terminal is not None and (
@@ -622,7 +646,7 @@ class TransmuterParser:
         if next_terminal is None or cls not in next_terminal.tags:
             return None
 
-        return TransmuterParsingState(
+        return IgneaParsingState(
             current_state.string + (cls,),
             current_state.start_position,
             (
@@ -635,10 +659,10 @@ class TransmuterParser:
 
     def _derive_single_nonterminal_type(
         self,
-        cls: type[TransmuterNonterminalType],
-        current_state: TransmuterParsingState,
+        cls: type[IgneaNonterminalType],
+        current_state: IgneaParsingState,
         ascend: bool,
-    ) -> set[TransmuterParsingState]:
+    ) -> set[IgneaParsingState]:
         """
         Tries to derive nonterminal type from single current state.
 
@@ -652,11 +676,11 @@ class TransmuterParser:
         Returns: Next parsing states.
 
         Raises:
-            TransmuterNoTerminalTagError:
+            IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
 
-        self.bsr.add(TransmuterEPN(None, current_state))
+        self.bsr.add(IgneaEPN(None, current_state))
         current_state_end_position = (
             current_state.end_terminal.end_position
             if current_state.end_terminal is not None
@@ -672,18 +696,18 @@ class TransmuterParser:
             try:
                 next_states = cls.descend(
                     self,
-                    TransmuterParsingState(
+                    IgneaParsingState(
                         (),
                         current_state_end_position,
                         current_state_end_position,
                         current_state.end_terminal,
                     ),
                 )
-            except TransmuterDerivationException:
+            except IgneaDerivationException:
                 pass
             else:
                 for next_state in next_states:
-                    self.bsr.add(TransmuterEPN(cls, next_state))
+                    self.bsr.add(IgneaEPN(cls, next_state))
                     assert next_state.end_terminal is not None
                     self._memo[cls, current_state_end_position].add(
                         next_state.end_terminal
@@ -696,7 +720,7 @@ class TransmuterParser:
                     cls.ascend(self, current_state)
 
         return {
-            TransmuterParsingState(
+            IgneaParsingState(
                 current_state.string + (cls,),
                 current_state.start_position,
                 current_state_end_position,
@@ -706,10 +730,13 @@ class TransmuterParser:
         }
 
 
-class TransmuterSyntacticError(TransmuterException):
+TransmuterParser = IgneaParser
+
+
+class IgneaSyntacticError(IgneaException):
     """Syntactic error processing an input file."""
 
-    def __init__(self, position: TransmuterPosition, description: str) -> None:
+    def __init__(self, position: IgneaPosition, description: str) -> None:
         """
         Initializes the error with the required information.
 
@@ -721,34 +748,43 @@ class TransmuterSyntacticError(TransmuterException):
         super().__init__(position, "Syntactic Error", description)
 
 
-class TransmuterNoStartError(TransmuterSyntacticError):
+TransmuterSyntacticError = IgneaSyntacticError
+
+
+class IgneaNoStartError(IgneaSyntacticError):
     """Could not determine starting symbol from given conditions."""
 
     def __init__(self) -> None:
         """Initializes the error with the required information."""
 
         super().__init__(
-            TransmuterPosition("<conditions>", 0, 0, 0),
+            IgneaPosition("<conditions>", 0, 0, 0),
             "Could not determine starting symbol from given conditions.",
         )
 
 
-class TransmuterMultipleStartsError(TransmuterSyntacticError):
+TransmuterNoStartError = IgneaNoStartError
+
+
+class IgneaMultipleStartsError(IgneaSyntacticError):
     """Multiple starting symbols from given conditions."""
 
     def __init__(self) -> None:
         """Initializes the error with the required information."""
 
         super().__init__(
-            TransmuterPosition("<conditions>", 0, 0, 0),
+            IgneaPosition("<conditions>", 0, 0, 0),
             "Multiple starting symbols from given conditions.",
         )
 
 
-class TransmuterNoDerivationError(TransmuterSyntacticError):
+TransmuterMultipleStartsError = IgneaMultipleStartsError
+
+
+class IgneaNoDerivationError(IgneaSyntacticError):
     """Could not derive input from any production rule."""
 
-    def __init__(self, position: TransmuterPosition) -> None:
+    def __init__(self, position: IgneaPosition) -> None:
         """
         Initializes the error with the required information.
 
@@ -761,10 +797,16 @@ class TransmuterNoDerivationError(TransmuterSyntacticError):
         )
 
 
-class TransmuterDerivationException(Exception):
+TransmuterNoDerivationError = IgneaNoDerivationError
+
+
+class IgneaDerivationException(Exception):
     """
     Could not derive any production rule.
 
     **This exception must never leak through the public API and reach
     user code.**
     """
+
+
+TransmuterDerivationException = IgneaDerivationException

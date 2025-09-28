@@ -19,23 +19,23 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import ClassVar, TypeGuard
 
-from ..common import TransmuterPosition, TransmuterException, TransmuterWarning
-from ..lexical import TransmuterTerminalTag, TransmuterTerminal
+from ..common import IgneaPosition, IgneaException, IgneaWarning
+from ..lexical import IgneaTerminalTag, IgneaTerminal
 from ..syntactic import (
-    TransmuterNonterminalType,
-    TransmuterParsingState,
-    TransmuterEPN,
-    TransmuterBSR,
+    IgneaNonterminalType,
+    IgneaParsingState,
+    IgneaEPN,
+    IgneaBSR,
 )
 
 
 @dataclass
-class TransmuterBSRVisitor:
-    _instance: ClassVar["TransmuterBSRVisitor | None"] = None
-    bsr: TransmuterBSR
+class IgneaBSRVisitor:
+    _instance: ClassVar["IgneaBSRVisitor | None"] = None
+    bsr: IgneaBSR
 
     @classmethod
-    def get(cls, bsr: TransmuterBSR) -> "TransmuterBSRVisitor":
+    def get(cls, bsr: IgneaBSR) -> "IgneaBSRVisitor":
         if cls._instance is None:
             cls._instance = cls(bsr)
         else:
@@ -112,14 +112,14 @@ class TransmuterBSRVisitor:
         pass
 
     def descend(
-        self, epns: list[TransmuterEPN], level_changed: bool
-    ) -> list[TransmuterEPN]:
+        self, epns: list[IgneaEPN], level_changed: bool
+    ) -> list[IgneaEPN]:
         return epns
 
     def bottom(self) -> bool:
         return False
 
-    def ascend(self, epns: list[TransmuterEPN], level_changed: bool) -> None:
+    def ascend(self, epns: list[IgneaEPN], level_changed: bool) -> None:
         pass
 
     def top_after(self) -> None:
@@ -127,14 +127,14 @@ class TransmuterBSRVisitor:
 
 
 @dataclass
-class TransmuterBSRTransformer(TransmuterBSRVisitor):
-    new_bsr: TransmuterBSR = field(init=False, repr=False)
+class IgneaBSRTransformer(IgneaBSRVisitor):
+    new_bsr: IgneaBSR = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         self.new_bsr = self.bsr
 
     def top_before(self) -> None:
-        self.new_bsr = TransmuterBSR()
+        self.new_bsr = IgneaBSR()
         self.new_bsr.start = self.bsr.start
 
     def apply(self) -> None:
@@ -143,26 +143,26 @@ class TransmuterBSRTransformer(TransmuterBSRVisitor):
         self.new_bsr = self.bsr
 
 
-class TransmuterBSRPruner(TransmuterBSRTransformer):
-    def descend(self, epns: list[TransmuterEPN], _) -> list[TransmuterEPN]:
+class IgneaBSRPruner(IgneaBSRTransformer):
+    def descend(self, epns: list[IgneaEPN], _) -> list[IgneaEPN]:
         for epn in epns:
             self.new_bsr.add(epn)
 
         return epns
 
 
-class TransmuterBSRDisambiguator(TransmuterBSRTransformer):
-    def descend(self, epns: list[TransmuterEPN], _) -> list[TransmuterEPN]:
+class IgneaBSRDisambiguator(IgneaBSRTransformer):
+    def descend(self, epns: list[IgneaEPN], _) -> list[IgneaEPN]:
         epn = self.disambiguate(epns) if len(epns) > 1 else epns[0]
         self.new_bsr.add(epn)
         return [epn]
 
-    def disambiguate(self, epns: list[TransmuterEPN]) -> TransmuterEPN:
-        raise TransmuterAmbiguousGrammarError(epns[0].state.start_position)
+    def disambiguate(self, epns: list[IgneaEPN]) -> IgneaEPN:
+        raise IgneaAmbiguousGrammarError(epns[0].state.start_position)
 
 
 @dataclass
-class TransmuterBSRFold[T](TransmuterBSRVisitor):
+class IgneaBSRFold[T](IgneaBSRVisitor):
     _fold_queue: deque[list[T | None]] = field(
         default_factory=deque, init=False, repr=False
     )
@@ -177,7 +177,7 @@ class TransmuterBSRFold[T](TransmuterBSRVisitor):
     def bottom(self) -> bool:
         return True
 
-    def ascend(self, epns: list[TransmuterEPN], _) -> None:
+    def ascend(self, epns: list[IgneaEPN], _) -> None:
         fold = []
 
         for epn in epns:
@@ -212,22 +212,22 @@ class TransmuterBSRFold[T](TransmuterBSRVisitor):
 
     def fold_internal(
         self,
-        epn: TransmuterEPN,
+        epn: IgneaEPN,
         left_children: list[T],
         right_children: list[T],
     ) -> T | None:
         raise NotImplementedError()
 
-    def fold_external(self, epn: TransmuterEPN) -> T | None:
+    def fold_external(self, epn: IgneaEPN) -> T | None:
         raise NotImplementedError()
 
 
 @dataclass
-class TransmuterBSRToTreeConverter(TransmuterBSRVisitor):
-    tree: "TransmuterNonterminalTreeNode | None" = field(
+class IgneaBSRToTreeConverter(IgneaBSRVisitor):
+    tree: "IgneaNonterminalTreeNode | None" = field(
         default=None, init=False, repr=False
     )
-    _parents: deque["TransmuterNonterminalTreeNode"] = field(
+    _parents: deque["IgneaNonterminalTreeNode"] = field(
         default_factory=deque, init=False, repr=False
     )
 
@@ -235,12 +235,12 @@ class TransmuterBSRToTreeConverter(TransmuterBSRVisitor):
         self.tree = None
         self._parents.clear()
 
-    def descend(self, epns: list[TransmuterEPN], _) -> list[TransmuterEPN]:
+    def descend(self, epns: list[IgneaEPN], _) -> list[IgneaEPN]:
         parent = self._parents.popleft() if len(self._parents) > 0 else None
         assert epns[0].state.end_terminal is not None
 
         if epns[0].type_ is not None:
-            node = TransmuterNonterminalTreeNode(
+            node = IgneaNonterminalTreeNode(
                 epns[0].type_,
                 epns[0].state.start_position,
                 epns[0].state.end_terminal,
@@ -271,10 +271,10 @@ class TransmuterBSRToTreeConverter(TransmuterBSRVisitor):
             epns[0].state.split_position
             != epns[0].state.end_terminal.end_position
         ):
-            assert issubclass(epns[0].state.string[-1], TransmuterTerminalTag)
+            assert issubclass(epns[0].state.string[-1], IgneaTerminalTag)
             parent.children.insert(
                 0,
-                TransmuterTerminalTreeNode(
+                IgneaTerminalTreeNode(
                     epns[0].state.string[-1],
                     epns[0].state.split_position,
                     epns[0].state.end_terminal,
@@ -285,58 +285,54 @@ class TransmuterBSRToTreeConverter(TransmuterBSRVisitor):
 
     def bottom(self) -> bool:
         if self.tree is not None:
-            TransmuterTreePositionFixer.get(self.tree).visit()
+            IgneaTreePositionFixer.get(self.tree).visit()
 
         return False
 
 
 @dataclass
-class TransmuterTreeNode:
-    type_: type[TransmuterTerminalTag | TransmuterNonterminalType]
-    start_position: TransmuterPosition
-    end_terminal: TransmuterTerminal
+class IgneaTreeNode:
+    type_: type[IgneaTerminalTag | IgneaNonterminalType]
+    start_position: IgneaPosition
+    end_terminal: IgneaTerminal
 
 
 @dataclass
-class TransmuterTerminalTreeNode(TransmuterTreeNode):
-    type_: type[TransmuterTerminalTag]
+class IgneaTerminalTreeNode(IgneaTreeNode):
+    type_: type[IgneaTerminalTag]
 
     def __repr__(self) -> str:
         return repr((self.type_, self.start_position, self.end_terminal))
 
 
 @dataclass
-class TransmuterNonterminalTreeNode(TransmuterTreeNode):
-    type_: type[TransmuterNonterminalType]
-    children: list[TransmuterTreeNode] = field(
-        default_factory=list, init=False
-    )
+class IgneaNonterminalTreeNode(IgneaTreeNode):
+    type_: type[IgneaNonterminalType]
+    children: list[IgneaTreeNode] = field(default_factory=list, init=False)
 
     def __repr__(self) -> str:
         return repr(
             (self.type_, self.start_position, self.end_terminal, self.children)
         )
 
-    def t(self, index: int) -> TransmuterTerminalTreeNode:
+    def t(self, index: int) -> IgneaTerminalTreeNode:
         t = self.children[index]
-        assert isinstance(t, TransmuterTerminalTreeNode)
+        assert isinstance(t, IgneaTerminalTreeNode)
         return t
 
-    def n(self, index: int) -> "TransmuterNonterminalTreeNode":
+    def n(self, index: int) -> "IgneaNonterminalTreeNode":
         n = self.children[index]
-        assert isinstance(n, TransmuterNonterminalTreeNode)
+        assert isinstance(n, IgneaNonterminalTreeNode)
         return n
 
 
 @dataclass
-class TransmuterTreeVisitor:
-    _instance: ClassVar["TransmuterTreeVisitor | None"] = None
-    tree: TransmuterNonterminalTreeNode
+class IgneaTreeVisitor:
+    _instance: ClassVar["IgneaTreeVisitor | None"] = None
+    tree: IgneaNonterminalTreeNode
 
     @classmethod
-    def get(
-        cls, tree: TransmuterNonterminalTreeNode
-    ) -> "TransmuterTreeVisitor":
+    def get(cls, tree: IgneaNonterminalTreeNode) -> "IgneaTreeVisitor":
         if cls._instance is None:
             cls._instance = cls(tree)
         else:
@@ -345,7 +341,7 @@ class TransmuterTreeVisitor:
         return cls._instance
 
     def visit(self) -> None:
-        descend_queue: deque[TransmuterTreeNode] = deque([self.tree])
+        descend_queue: deque[IgneaTreeNode] = deque([self.tree])
         ascend_stack = []
         descend_queue_levels = [1, 0]
         ascend_stack_levels = [1]
@@ -375,7 +371,7 @@ class TransmuterTreeVisitor:
             node = node_opt
             ascend_stack.append(node)
 
-            if isinstance(node, TransmuterNonterminalTreeNode):
+            if isinstance(node, IgneaNonterminalTreeNode):
                 descend_queue.extend(node.children)
                 descend_queue_levels[1] += len(node.children)
 
@@ -399,14 +395,14 @@ class TransmuterTreeVisitor:
         pass
 
     def descend(
-        self, node: TransmuterTreeNode, level_changed: bool
-    ) -> TransmuterTreeNode | None:
+        self, node: IgneaTreeNode, level_changed: bool
+    ) -> IgneaTreeNode | None:
         return node
 
     def bottom(self) -> bool:
         return False
 
-    def ascend(self, node: TransmuterTreeNode, level_changed: bool) -> None:
+    def ascend(self, node: IgneaTreeNode, level_changed: bool) -> None:
         pass
 
     def top_after(self) -> None:
@@ -414,10 +410,8 @@ class TransmuterTreeVisitor:
 
 
 @dataclass
-class TransmuterTreeTransformer(TransmuterTreeVisitor):
-    new_tree: TransmuterNonterminalTreeNode | None = field(
-        init=False, repr=False
-    )
+class IgneaTreeTransformer(IgneaTreeVisitor):
+    new_tree: IgneaNonterminalTreeNode | None = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         self.new_tree = self.tree
@@ -435,7 +429,7 @@ class TransmuterTreeTransformer(TransmuterTreeVisitor):
 
 
 @dataclass
-class TransmuterTreeFold[T](TransmuterTreeVisitor):
+class IgneaTreeFold[T](IgneaTreeVisitor):
     _fold_queue: list[T | None] = field(
         default_factory=list, init=False, repr=False
     )
@@ -450,8 +444,8 @@ class TransmuterTreeFold[T](TransmuterTreeVisitor):
     def bottom(self) -> bool:
         return True
 
-    def ascend(self, node: TransmuterTreeNode, _) -> None:
-        if isinstance(node, TransmuterNonterminalTreeNode):
+    def ascend(self, node: IgneaTreeNode, _) -> None:
+        if isinstance(node, IgneaNonterminalTreeNode):
             fold_children = list(
                 filter(
                     self._fold_filter, self._fold_queue[-len(node.children) :]
@@ -460,7 +454,7 @@ class TransmuterTreeFold[T](TransmuterTreeVisitor):
             self._fold_queue = self._fold_queue[: -len(node.children)]
             fold = self.fold_internal(node, fold_children)
         else:
-            assert isinstance(node, TransmuterTerminalTreeNode)
+            assert isinstance(node, IgneaTerminalTreeNode)
             fold = self.fold_external(node)
 
         self._fold_queue.insert(0, fold)
@@ -475,31 +469,29 @@ class TransmuterTreeFold[T](TransmuterTreeVisitor):
         return fold
 
     def fold_internal(
-        self, node: TransmuterNonterminalTreeNode, children: list[T]
+        self, node: IgneaNonterminalTreeNode, children: list[T]
     ) -> T | None:
         raise NotImplementedError()
 
-    def fold_external(self, node: TransmuterTerminalTreeNode) -> T | None:
+    def fold_external(self, node: IgneaTerminalTreeNode) -> T | None:
         raise NotImplementedError()
 
 
-class TransmuterTreePositionFixer(TransmuterTreeVisitor):
+class IgneaTreePositionFixer(IgneaTreeVisitor):
     def bottom(self) -> bool:
         return True
 
-    def ascend(self, node: TransmuterTreeNode, _) -> None:
-        if isinstance(node, TransmuterNonterminalTreeNode):
+    def ascend(self, node: IgneaTreeNode, _) -> None:
+        if isinstance(node, IgneaNonterminalTreeNode):
             node.start_position = node.children[0].start_position
         else:
-            assert isinstance(node, TransmuterTerminalTreeNode)
+            assert isinstance(node, IgneaTerminalTreeNode)
             node.start_position = node.end_terminal.start_position
 
 
-class TransmuterTreePositionUnfixer(TransmuterTreeVisitor):
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
-        if isinstance(node, TransmuterNonterminalTreeNode):
+class IgneaTreePositionUnfixer(IgneaTreeVisitor):
+    def descend(self, node: IgneaTreeNode, _) -> IgneaTreeNode | None:
+        if isinstance(node, IgneaNonterminalTreeNode):
             node.children[0].start_position = node.start_position
 
             for i in range(1, len(node.children)):
@@ -511,15 +503,15 @@ class TransmuterTreePositionUnfixer(TransmuterTreeVisitor):
 
 
 @dataclass
-class TransmuterTreeToBSRConverter(TransmuterTreeVisitor):
-    bsr: TransmuterBSR = field(init=False, repr=False)
+class IgneaTreeToBSRConverter(IgneaTreeVisitor):
+    bsr: IgneaBSR = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        self.bsr = TransmuterBSR()
+        self.bsr = IgneaBSR()
 
     def top_before(self) -> None:
         if self.bsr.start is not None or len(self.bsr.epns) > 0:
-            self.bsr = TransmuterBSR()
+            self.bsr = IgneaBSR()
 
         self.bsr.start = (
             self.tree.type_,
@@ -527,16 +519,14 @@ class TransmuterTreeToBSRConverter(TransmuterTreeVisitor):
             self.tree.end_terminal.end_position,
         )
 
-        TransmuterTreePositionUnfixer.get(self.tree).visit()
+        IgneaTreePositionUnfixer.get(self.tree).visit()
 
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
-        if isinstance(node, TransmuterNonterminalTreeNode):
+    def descend(self, node: IgneaTreeNode, _) -> IgneaTreeNode | None:
+        if isinstance(node, IgneaNonterminalTreeNode):
             string = tuple(child.type_ for child in node.children)
-            epn = TransmuterEPN(
+            epn = IgneaEPN(
                 node.type_,
-                TransmuterParsingState(
+                IgneaParsingState(
                     string,
                     node.start_position,
                     (
@@ -550,9 +540,9 @@ class TransmuterTreeToBSRConverter(TransmuterTreeVisitor):
             self.bsr.add(epn)
 
             for i in range(len(node.children) - 1):
-                epn = TransmuterEPN(
+                epn = IgneaEPN(
                     None,
-                    TransmuterParsingState(
+                    IgneaParsingState(
                         string[: i + 1],
                         node.start_position,
                         node.children[i].start_position,
@@ -564,20 +554,20 @@ class TransmuterTreeToBSRConverter(TransmuterTreeVisitor):
         return node
 
     def bottom(self) -> bool:
-        TransmuterTreePositionFixer.get(self.tree).visit()
+        IgneaTreePositionFixer.get(self.tree).visit()
         return False
 
 
-class TransmuterSemanticError(TransmuterException):
-    def __init__(self, position: TransmuterPosition, description: str) -> None:
+class IgneaSemanticError(IgneaException):
+    def __init__(self, position: IgneaPosition, description: str) -> None:
         super().__init__(position, "Semantic Error", description)
 
 
-class TransmuterSemanticWarning(TransmuterWarning):
-    def __init__(self, position: TransmuterPosition, description: str) -> None:
+class IgneaSemanticWarning(IgneaWarning):
+    def __init__(self, position: IgneaPosition, description: str) -> None:
         super().__init__(position, "Semantic Warning", description)
 
 
-class TransmuterAmbiguousGrammarError(TransmuterSemanticError):
-    def __init__(self, position: TransmuterPosition) -> None:
+class IgneaAmbiguousGrammarError(IgneaSemanticError):
+    def __init__(self, position: IgneaPosition) -> None:
         super().__init__(position, "Unexpected grammar ambiguity.")

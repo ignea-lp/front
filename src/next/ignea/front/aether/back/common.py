@@ -17,13 +17,13 @@
 
 from dataclasses import dataclass
 
-from ...lexical import TransmuterTerminal
+from ...lexical import IgneaTerminal
 from ...semantic.common import (
-    TransmuterTerminalTreeNode,
-    TransmuterNonterminalTreeNode,
-    TransmuterTreeFold,
+    IgneaTerminalTreeNode,
+    IgneaNonterminalTreeNode,
+    IgneaTreeFold,
 )
-from ...semantic.symbol_table import TransmuterSymbolTable
+from ...semantic.symbol_table import IgneaSymbolTable
 from ..lexical import (
     Identifier,
     CommercialAt,
@@ -58,7 +58,7 @@ from ..semantic import LexicalState, LexicalSymbol, SyntacticSymbol
 
 @dataclass
 class AetherFileFold:
-    symbol_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode]
+    symbol_table: IgneaSymbolTable[IgneaNonterminalTreeNode]
 
     @staticmethod
     def indent(value: str, level: int = 1) -> str:
@@ -87,9 +87,9 @@ class AetherCommonFileFold(AetherFileFold):
         raise NotImplementedError()
 
 
-class AetherConditionFold(TransmuterTreeFold[str]):
+class AetherConditionFold(IgneaTreeFold[str]):
     def fold_internal(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str | None:
         if len(children) == 0:
             return None
@@ -109,7 +109,7 @@ class AetherConditionFold(TransmuterTreeFold[str]):
         assert node.type_ == ConjunctionCondition
         return self.fold_conjunction(node, children)
 
-    def fold_external(self, node: TransmuterTerminalTreeNode) -> str | None:
+    def fold_external(self, node: IgneaTerminalTreeNode) -> str | None:
         if node.type_ in (
             CommercialAt,
             DoubleVerticalLine,
@@ -123,23 +123,19 @@ class AetherConditionFold(TransmuterTreeFold[str]):
         return node.end_terminal.value
 
     def fold_disjunction(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str:
         raise NotImplementedError()
 
     def fold_conjunction(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str:
         raise NotImplementedError()
 
-    def fold_negation(
-        self, node: TransmuterNonterminalTreeNode, child: str
-    ) -> str:
+    def fold_negation(self, node: IgneaNonterminalTreeNode, child: str) -> str:
         raise NotImplementedError()
 
-    def fold_primary(
-        self, node: TransmuterNonterminalTreeNode, child: str
-    ) -> str:
+    def fold_primary(self, node: IgneaNonterminalTreeNode, child: str) -> str:
         raise NotImplementedError()
 
 
@@ -231,7 +227,7 @@ class AetherLexicalFileFold(AetherFileFold):
 
         return self.fold_file(terminal_tag_names, terminal_tags)
 
-    def fold_condition(self, value: TransmuterNonterminalTreeNode) -> str:
+    def fold_condition(self, value: IgneaNonterminalTreeNode) -> str:
         condition_fold = self.condition_fold_type.get(value)
         assert isinstance(condition_fold, AetherConditionFold)
         return condition_fold.fold_s()
@@ -292,16 +288,16 @@ class AetherLexicalFileFold(AetherFileFold):
 
 
 @dataclass
-class AetherExpressionFold(TransmuterTreeFold[str]):
+class AetherExpressionFold(IgneaTreeFold[str]):
     condition_fold_type: type[AetherConditionFold]
-    first_references: set[TransmuterTerminal]
+    first_references: set[IgneaTerminal]
 
     @classmethod
     def get(
         cls,
-        tree: TransmuterNonterminalTreeNode,
+        tree: IgneaNonterminalTreeNode,
         condition_fold_type: type[AetherConditionFold],
-        first_references: set[TransmuterTerminal],
+        first_references: set[IgneaTerminal],
     ) -> "AetherExpressionFold":
         if cls._instance is None:
             cls._instance = cls(tree, condition_fold_type, first_references)
@@ -314,7 +310,7 @@ class AetherExpressionFold(TransmuterTreeFold[str]):
         return cls._instance
 
     def fold_internal(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str | None:
         if (
             node.type_
@@ -378,7 +374,7 @@ class AetherExpressionFold(TransmuterTreeFold[str]):
         assert node.type_ == SequenceExpression
         return self.fold_sequence(node, children)
 
-    def fold_external(self, node: TransmuterTerminalTreeNode) -> str | None:
+    def fold_external(self, node: IgneaTerminalTreeNode) -> str | None:
         if node.type_ in (
             CommercialAt,
             LeftParenthesis,
@@ -401,25 +397,25 @@ class AetherExpressionFold(TransmuterTreeFold[str]):
 
     def fold_selection(
         self,
-        node: TransmuterNonterminalTreeNode,
+        node: IgneaNonterminalTreeNode,
         children: list[str],
         ordered: bool,
     ) -> str:
         raise NotImplementedError()
 
     def fold_sequence(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str:
         raise NotImplementedError()
 
     def fold_iteration(
-        self, node: TransmuterNonterminalTreeNode, child: str, ordered: bool
+        self, node: IgneaNonterminalTreeNode, child: str, ordered: bool
     ) -> str:
         raise NotImplementedError()
 
     def fold_primary(
         self,
-        node: TransmuterNonterminalTreeNode,
+        node: IgneaNonterminalTreeNode,
         child: str,
         first: bool,
         condition: str | None,
@@ -427,7 +423,7 @@ class AetherExpressionFold(TransmuterTreeFold[str]):
         raise NotImplementedError()
 
     def fold_optional(
-        self, node: TransmuterNonterminalTreeNode, child: str, ordered: bool
+        self, node: IgneaNonterminalTreeNode, child: str, ordered: bool
     ) -> str:
         raise NotImplementedError()
 
@@ -488,15 +484,15 @@ class AetherSyntacticFileFold(AetherFileFold):
 
         return self.fold_file(nonterminal_type_names, nonterminal_types)
 
-    def fold_condition(self, value: TransmuterNonterminalTreeNode) -> str:
+    def fold_condition(self, value: IgneaNonterminalTreeNode) -> str:
         condition_fold = self.condition_fold_type.get(value)
         assert isinstance(condition_fold, AetherConditionFold)
         return condition_fold.fold_s()
 
     def fold_expression(
         self,
-        value: TransmuterNonterminalTreeNode,
-        first_references: set[TransmuterTerminal],
+        value: IgneaNonterminalTreeNode,
+        first_references: set[IgneaTerminal],
     ) -> str:
         expression_fold = self.expression_fold_type.get(
             value, self.condition_fold_type, first_references

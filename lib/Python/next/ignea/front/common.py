@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Common utilities for the Transmuter front-end libraries."""
+"""Common utilities for the Ignea front-end libraries."""
 
 from dataclasses import dataclass
 from enum import auto, IntFlag
@@ -24,19 +24,28 @@ import sys
 import warnings
 
 __all__ = [
+    "IgneaConditions",
     "TransmuterConditions",
+    "IgneaCondition",
     "TransmuterCondition",
+    "IgneaPosition",
     "TransmuterPosition",
+    "IgneaException",
     "TransmuterException",
+    "IgneaExceptionHandler",
     "TransmuterExceptionHandler",
+    "IgneaWarning",
     "TransmuterWarning",
+    "ignea_init_warnings",
     "transmuter_init_warnings",
 ]
-TransmuterConditions = IntFlag
-TransmuterCondition = auto
+IgneaConditions = IntFlag
+TransmuterConditions = IgneaConditions
+IgneaCondition = auto
+TransmuterCondition = IgneaCondition
 
 
-class TransmuterMeta(type):
+class IgneaMeta(type):
     """Class represented by its name."""
 
     def __repr__(cls) -> str:
@@ -46,7 +55,7 @@ class TransmuterMeta(type):
 
 
 @dataclass(eq=False)
-class TransmuterPosition:
+class IgneaPosition:
     """
     Position in a text file.
 
@@ -75,14 +84,14 @@ class TransmuterPosition:
 
         return f"{self.filename}:{self.line}:{self.column}"
 
-    def copy(self) -> "TransmuterPosition":
+    def copy(self) -> "IgneaPosition":
         """Returns a copy of this position."""
 
-        return TransmuterPosition(
+        return IgneaPosition(
             self.filename, self.index_, self.line, self.column
         )
 
-    def update(self, position: "TransmuterPosition") -> None:
+    def update(self, position: "IgneaPosition") -> None:
         """
         Updates this position in-place, copying the provided position.
 
@@ -96,11 +105,14 @@ class TransmuterPosition:
         self.column = position.column
 
 
-class TransmuterException(Exception):
+TransmuterPosition = IgneaPosition
+
+
+class IgneaException(Exception):
     """Generic exception processing an input file."""
 
     def __init__(
-        self, position: TransmuterPosition, type_: str, description: str
+        self, position: IgneaPosition, type_: str, description: str
     ) -> None:
         """
         Initializes the exception with the required information.
@@ -114,10 +126,13 @@ class TransmuterException(Exception):
         super().__init__(f"{position}: {type_}: {description}")
 
 
-class TransmuterExceptionHandler:
-    """Context manager to handle `TransmuterException` objects."""
+TransmuterException = IgneaException
 
-    def __enter__(self) -> "TransmuterExceptionHandler":
+
+class IgneaExceptionHandler:
+    """Context manager to handle `IgneaException` objects."""
+
+    def __enter__(self) -> "IgneaExceptionHandler":
         """Returns itself."""
 
         return self
@@ -129,7 +144,7 @@ class TransmuterExceptionHandler:
         _,
     ) -> bool:
         """
-        Prints `TransmuterException` objects to stderr.
+        Prints `IgneaException` objects to stderr.
 
         Forwards any other exception.
 
@@ -143,19 +158,25 @@ class TransmuterExceptionHandler:
         Returns: Whether the exception was handled.
         """
 
-        if exc_type is not None and issubclass(exc_type, TransmuterException):
+        if exc_type is not None and issubclass(exc_type, IgneaException):
             print(exc_value, file=sys.stderr)
             return True
 
         return False
 
 
-class TransmuterWarning(TransmuterException, Warning):
+TransmuterExceptionHandler = IgneaExceptionHandler
+
+
+class IgneaWarning(IgneaException, Warning):
     """Generic warning processing an input file."""
 
 
-def transmuter_init_warnings() -> None:
-    """Initializes the warnings module for `TransmuterWarning` objects."""
+TransmuterWarning = IgneaWarning
+
+
+def ignea_init_warnings() -> None:
+    """Initializes the warnings module for `IgneaWarning` objects."""
 
     original_formatwarning = warnings.formatwarning
 
@@ -167,7 +188,7 @@ def transmuter_init_warnings() -> None:
         line: str | None = None,
     ) -> str:
         """
-        Formats `TransmuterWarning` objects as strings.
+        Formats `IgneaWarning` objects as strings.
 
         Forwards any other warning to the default formatter.
 
@@ -181,7 +202,7 @@ def transmuter_init_warnings() -> None:
         Returns: Formatted warning string.
         """
 
-        if issubclass(category, TransmuterWarning):
+        if issubclass(category, IgneaWarning):
             return f"{str(message)}\n"
 
         return original_formatwarning(
@@ -189,4 +210,7 @@ def transmuter_init_warnings() -> None:
         )
 
     warnings.formatwarning = formatwarning
-    warnings.filterwarnings("always", category=TransmuterWarning)
+    warnings.filterwarnings("always", category=IgneaWarning)
+
+
+transmuter_init_warnings = ignea_init_warnings

@@ -17,20 +17,20 @@
 
 from dataclasses import dataclass, field
 
-from ..lexical import TransmuterTerminal
-from ..syntactic import transmuter_compute_sccs
+from ..lexical import IgneaTerminal
+from ..syntactic import ignea_compute_sccs
 from ..semantic.common import (
-    TransmuterTreeNode,
-    TransmuterTerminalTreeNode,
-    TransmuterNonterminalTreeNode,
-    TransmuterTreeVisitor,
-    TransmuterTreeFold,
+    IgneaTreeNode,
+    IgneaTerminalTreeNode,
+    IgneaNonterminalTreeNode,
+    IgneaTreeVisitor,
+    IgneaTreeFold,
 )
 from ..semantic.symbol_table import (
-    TransmuterSymbol,
-    TransmuterSymbolTable,
-    TransmuterDuplicateSymbolDefinitionError,
-    TransmuterUndefinedSymbolError,
+    IgneaSymbol,
+    IgneaSymbolTable,
+    IgneaDuplicateSymbolDefinitionError,
+    IgneaUndefinedSymbolError,
 )
 from .lexical import (
     Identifier,
@@ -149,7 +149,7 @@ class _LexicalFragment:
             state.next_states |= fragment.first
 
 
-class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
+class _LexicalFold(IgneaTreeFold[_LexicalFragment]):
     @staticmethod
     def fold_selection(children: list[_LexicalFragment]) -> _LexicalFragment:
         fragment = children[0]
@@ -247,7 +247,7 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
 
     @classmethod
     def fold_iteration(
-        cls, iterator: TransmuterTerminalTreeNode, child: _LexicalFragment
+        cls, iterator: IgneaTerminalTreeNode, child: _LexicalFragment
     ) -> _LexicalFragment | None:
         iterator_type = iterator.type_
 
@@ -319,7 +319,7 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
 
     def fold_internal(
         self,
-        node: TransmuterNonterminalTreeNode,
+        node: IgneaNonterminalTreeNode,
         children: list[_LexicalFragment],
     ) -> _LexicalFragment | None:
         if len(children) == 0:
@@ -338,7 +338,7 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
         return self.fold_sequence(children)
 
     def fold_external(
-        self, node: TransmuterTerminalTreeNode
+        self, node: IgneaTerminalTreeNode
     ) -> _LexicalFragment | None:
         if node.type_ in (
             VerticalLine,
@@ -376,44 +376,32 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
 
 
 @dataclass
-class LexicalSymbol(TransmuterSymbol[TransmuterNonterminalTreeNode]):
+class LexicalSymbol(IgneaSymbol[IgneaNonterminalTreeNode]):
     states_start: list[int] = field(default_factory=list, init=False)
-    start: TransmuterNonterminalTreeNode | None = field(
-        default=None, init=False
-    )
-    ignore: TransmuterNonterminalTreeNode | bool = field(
-        default=False, init=False
-    )
+    start: IgneaNonterminalTreeNode | None = field(default=None, init=False)
+    ignore: IgneaNonterminalTreeNode | bool = field(default=False, init=False)
     static_positives: list[str] = field(default_factory=list, init=False)
-    conditional_positives: dict[str, TransmuterNonterminalTreeNode] = field(
+    conditional_positives: dict[str, IgneaNonterminalTreeNode] = field(
         default_factory=dict, init=False
     )
     static_negatives: list[str] = field(default_factory=list, init=False)
-    conditional_negatives: dict[str, TransmuterNonterminalTreeNode] = field(
+    conditional_negatives: dict[str, IgneaNonterminalTreeNode] = field(
         default_factory=dict, init=False
     )
     states: list[LexicalState] = field(default_factory=list, init=False)
 
 
 @dataclass
-class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
-    condition_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = (
-        field(
-            default_factory=TransmuterSymbolTable[
-                TransmuterNonterminalTreeNode
-            ],
-            init=False,
-            repr=False,
-        )
+class LexicalSymbolTableBuilder(IgneaTreeVisitor):
+    condition_table: IgneaSymbolTable[IgneaNonterminalTreeNode] = field(
+        default_factory=IgneaSymbolTable[IgneaNonterminalTreeNode],
+        init=False,
+        repr=False,
     )
-    terminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = (
-        field(
-            default_factory=TransmuterSymbolTable[
-                TransmuterNonterminalTreeNode
-            ],
-            init=False,
-            repr=False,
-        )
+    terminal_table: IgneaSymbolTable[IgneaNonterminalTreeNode] = field(
+        default_factory=IgneaSymbolTable[IgneaNonterminalTreeNode],
+        init=False,
+        repr=False,
     )
 
     @staticmethod
@@ -463,16 +451,14 @@ class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
         self.condition_table.symbols.clear()
         self.terminal_table.symbols.clear()
 
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
-        if isinstance(node, TransmuterNonterminalTreeNode):
+    def descend(self, node: IgneaTreeNode, _) -> IgneaTreeNode | None:
+        if isinstance(node, IgneaNonterminalTreeNode):
             if node.type_ == Production:
                 name = node.n(0).children[0].end_terminal.value
                 symbol = self.terminal_table.add_get(name, type_=LexicalSymbol)
 
                 if symbol.definition is not None:
-                    raise TransmuterDuplicateSymbolDefinitionError(
+                    raise IgneaDuplicateSymbolDefinitionError(
                         node.start_position,
                         name,
                         symbol.definition.start_position,
@@ -504,7 +490,7 @@ class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
             assert isinstance(symbol, LexicalSymbol)
 
             if symbol.definition is None:
-                raise TransmuterUndefinedSymbolError(
+                raise IgneaUndefinedSymbolError(
                     self.tree.end_terminal.end_position,
                     name,
                     symbol.references[0].start_position,
@@ -542,14 +528,14 @@ class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
 
 @dataclass
 class _SyntacticFragment:
-    references: dict[TransmuterTerminal, list[TransmuterNonterminalTreeNode]]
+    references: dict[IgneaTerminal, list[IgneaNonterminalTreeNode]]
     bypass: bool = False
 
 
-class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
+class _SyntacticFold(IgneaTreeFold[_SyntacticFragment]):
     def fold_internal(
         self,
-        node: TransmuterNonterminalTreeNode,
+        node: IgneaNonterminalTreeNode,
         children: list[_SyntacticFragment],
     ) -> _SyntacticFragment | None:
         if len(children) == 0 or node.type_ in (
@@ -590,7 +576,7 @@ class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
         return children[0]
 
     def fold_external(
-        self, node: TransmuterTerminalTreeNode
+        self, node: IgneaTerminalTreeNode
     ) -> _SyntacticFragment | None:
         if node.type_ == Identifier:
             return _SyntacticFragment({node.end_terminal: []})
@@ -599,24 +585,20 @@ class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
 
 
 @dataclass
-class SyntacticSymbol(TransmuterSymbol[TransmuterNonterminalTreeNode]):
-    start: TransmuterNonterminalTreeNode | bool = field(
-        default=False, init=False
+class SyntacticSymbol(IgneaSymbol[IgneaNonterminalTreeNode]):
+    start: IgneaNonterminalTreeNode | bool = field(default=False, init=False)
+    static_first: list[IgneaTerminal] = field(default_factory=list, init=False)
+    conditional_first: dict[IgneaTerminal, list[IgneaNonterminalTreeNode]] = (
+        field(default_factory=dict, init=False)
     )
-    static_first: list[TransmuterTerminal] = field(
-        default_factory=list, init=False
-    )
-    conditional_first: dict[
-        TransmuterTerminal, list[TransmuterNonterminalTreeNode]
-    ] = field(default_factory=dict, init=False)
 
 
 @dataclass
-class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
-    condition_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode]
-    terminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode]
-    nonterminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = (
-        field(init=False, repr=False)
+class SyntacticSymbolTableBuilder(IgneaTreeVisitor):
+    condition_table: IgneaSymbolTable[IgneaNonterminalTreeNode]
+    terminal_table: IgneaSymbolTable[IgneaNonterminalTreeNode]
+    nonterminal_table: IgneaSymbolTable[IgneaNonterminalTreeNode] = field(
+        init=False, repr=False
     )
 
     @staticmethod
@@ -640,9 +622,9 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
     @classmethod
     def get(
         cls,
-        tree: TransmuterNonterminalTreeNode,
-        condition_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode],
-        terminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode],
+        tree: IgneaNonterminalTreeNode,
+        condition_table: IgneaSymbolTable[IgneaNonterminalTreeNode],
+        terminal_table: IgneaSymbolTable[IgneaNonterminalTreeNode],
     ) -> "SyntacticSymbolTableBuilder":
         if cls._instance is None:
             cls._instance = cls(tree, condition_table, terminal_table)
@@ -656,17 +638,15 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
         return cls._instance
 
     def __post_init__(self) -> None:
-        self.nonterminal_table = TransmuterSymbolTable[
-            TransmuterNonterminalTreeNode
-        ](self.terminal_table)
+        self.nonterminal_table = IgneaSymbolTable[IgneaNonterminalTreeNode](
+            self.terminal_table
+        )
 
     def top_before(self) -> None:
         self.nonterminal_table.symbols.clear()
 
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
-        if isinstance(node, TransmuterNonterminalTreeNode):
+    def descend(self, node: IgneaTreeNode, _) -> IgneaTreeNode | None:
+        if isinstance(node, IgneaNonterminalTreeNode):
             if node.type_ == Production:
                 name = node.n(0).children[0].end_terminal.value
                 symbol = self.nonterminal_table.add_get(
@@ -674,7 +654,7 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
                 )
 
                 if symbol.definition is not None:
-                    raise TransmuterDuplicateSymbolDefinitionError(
+                    raise IgneaDuplicateSymbolDefinitionError(
                         node.start_position,
                         name,
                         symbol.definition.start_position,
@@ -707,7 +687,7 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
             assert isinstance(symbol, SyntacticSymbol)
 
             if symbol.definition is None:
-                raise TransmuterUndefinedSymbolError(
+                raise IgneaUndefinedSymbolError(
                     self.tree.end_terminal.end_position,
                     name,
                     symbol.references[0].start_position,
@@ -718,7 +698,7 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
             first[name] = set(s.value for s in symbol.static_first)
             first[name].update(s.value for s in symbol.conditional_first)
 
-        sccs = transmuter_compute_sccs(first)
+        sccs = ignea_compute_sccs(first)
         first2 = {}
 
         for scc in sccs:

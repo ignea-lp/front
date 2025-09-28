@@ -17,7 +17,7 @@
 
 import builtins
 
-from ...semantic.common import TransmuterNonterminalTreeNode
+from ...semantic.common import IgneaNonterminalTreeNode
 from ..lexical import Identifier
 from ..syntactic import Condition
 from ..semantic import (
@@ -125,26 +125,22 @@ class CommonFileFold(AetherCommonFileFold):
 
 class ConditionFold(AetherConditionFold):
     def fold_disjunction(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str:
         return " or ".join(children)
 
     def fold_conjunction(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str:
         return " and ".join(children)
 
-    def fold_negation(
-        self, node: TransmuterNonterminalTreeNode, child: str
-    ) -> str:
+    def fold_negation(self, node: IgneaNonterminalTreeNode, child: str) -> str:
         if len(node.n(-1).children) == 1:
             return child.replace(" in ", " not in ", 1)
 
         return f"not {child}"
 
-    def fold_primary(
-        self, node: TransmuterNonterminalTreeNode, child: str
-    ) -> str:
+    def fold_primary(self, node: IgneaNonterminalTreeNode, child: str) -> str:
         if len(node.children) == 1:
             return f"Conditions.{_escape_identifier(child)} in conditions"
 
@@ -167,9 +163,7 @@ class LexicalFileFold(AetherLexicalFileFold):
         negatives: str | None,
         nfa: str,
     ) -> str:
-        terminal_tag = (
-            f"class {_escape_identifier(name)}(IgneaTerminalTag):\n"
-        )
+        terminal_tag = f"class {_escape_identifier(name)}(IgneaTerminalTag):\n"
 
         if states_start is not None:
             terminal_tag += f"    {states_start}\n\n"
@@ -325,7 +319,7 @@ class LexicalFileFold(AetherLexicalFileFold):
 class ExpressionFold(AetherExpressionFold):
     def fold_selection(
         self,
-        node: TransmuterNonterminalTreeNode,
+        node: IgneaNonterminalTreeNode,
         children: list[str],
         ordered: bool,
     ) -> str:
@@ -376,18 +370,18 @@ class ExpressionFold(AetherExpressionFold):
         return selection
 
     def fold_sequence(
-        self, node: TransmuterNonterminalTreeNode, children: list[str]
+        self, node: IgneaNonterminalTreeNode, children: list[str]
     ) -> str:
         return "\n".join(children)
 
     def fold_iteration(
-        self, node: TransmuterNonterminalTreeNode, child: str, ordered: bool
+        self, node: IgneaNonterminalTreeNode, child: str, ordered: bool
     ) -> str:
         return f"next_states.append(next_states[-1])  # begin iteration\n\nwhile True:\n    try:\n{AetherFileFold.indent(child, 2).strip('\n')}\n    except IgneaDerivationException:\n        next_states.pop()\n        break\n\n    next_states[-2] {'|' if not ordered else ''}= next_states[-1]  # end iteration\n"
 
     def fold_primary(
         self,
-        node: TransmuterNonterminalTreeNode,
+        node: IgneaNonterminalTreeNode,
         child: str,
         first: bool,
         condition: str | None,
@@ -403,7 +397,7 @@ class ExpressionFold(AetherExpressionFold):
         return primary
 
     def fold_optional(
-        self, node: TransmuterNonterminalTreeNode, child: str, ordered: bool
+        self, node: IgneaNonterminalTreeNode, child: str, ordered: bool
     ) -> str:
         return f"\ntry:  # begin optional\n    next_states.append(next_states[-1])\n{AetherFileFold.indent(child).rstrip('\n')}\nexcept IgneaDerivationException:\n    next_states.pop()\nelse:\n    next_states[-1] {'|' if not ordered else ''}= next_states.pop()  # end optional\n"
 

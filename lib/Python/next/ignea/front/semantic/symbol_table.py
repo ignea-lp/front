@@ -18,12 +18,12 @@
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 
-from ..common import TransmuterPosition
-from .common import TransmuterSemanticError
+from ..common import IgneaPosition
+from .common import IgneaSemanticError
 
 
 @dataclass
-class TransmuterSymbol[T]:
+class IgneaSymbol[T]:
     definition: T | None = field(default=None, init=False)
     declarations: list[T] = field(default_factory=list, init=False)
     references: list[T] = field(default_factory=list, init=False)
@@ -33,22 +33,22 @@ class TransmuterSymbol[T]:
 
 
 @dataclass
-class TransmuterSymbolTable[T]:
-    parent: "TransmuterSymbolTable[T] | None" = None
-    symbols: dict[str, TransmuterSymbol[T]] = field(
+class IgneaSymbolTable[T]:
+    parent: "IgneaSymbolTable[T] | None" = None
+    symbols: dict[str, IgneaSymbol[T]] = field(
         default_factory=dict, init=False, repr=False
     )
 
-    def __iter__(self) -> Iterator[tuple[str, TransmuterSymbol[T]]]:
+    def __iter__(self) -> Iterator[tuple[str, IgneaSymbol[T]]]:
         return iter(self.symbols.items())
 
     def add_get(
         self,
         name: str,
         shadow: bool = False,
-        type_: type[TransmuterSymbol[T]] = TransmuterSymbol[T],
-    ) -> TransmuterSymbol[T]:
-        table: TransmuterSymbolTable[T] | None = self
+        type_: type[IgneaSymbol[T]] = IgneaSymbol[T],
+    ) -> IgneaSymbol[T]:
+        table: IgneaSymbolTable[T] | None = self
 
         if name not in self.symbols and (
             shadow
@@ -62,7 +62,7 @@ class TransmuterSymbolTable[T]:
         assert table is not None
         return table.symbols[name]
 
-    def table(self, name: str) -> "TransmuterSymbolTable[T] | None":
+    def table(self, name: str) -> "IgneaSymbolTable[T] | None":
         if name in self.symbols:
             return self
 
@@ -72,12 +72,12 @@ class TransmuterSymbolTable[T]:
         return self.parent.table(name)
 
 
-class TransmuterDuplicateSymbolDefinitionError(TransmuterSemanticError):
+class IgneaDuplicateSymbolDefinitionError(IgneaSemanticError):
     def __init__(
         self,
-        position: TransmuterPosition,
+        position: IgneaPosition,
         name: str,
-        first_position: TransmuterPosition,
+        first_position: IgneaPosition,
     ) -> None:
         super().__init__(
             position,
@@ -85,12 +85,12 @@ class TransmuterDuplicateSymbolDefinitionError(TransmuterSemanticError):
         )
 
 
-class TransmuterUndefinedSymbolError(TransmuterSemanticError):
+class IgneaUndefinedSymbolError(IgneaSemanticError):
     def __init__(
         self,
-        position: TransmuterPosition,
+        position: IgneaPosition,
         name: str,
-        first_position: TransmuterPosition,
+        first_position: IgneaPosition,
     ) -> None:
         super().__init__(
             position,

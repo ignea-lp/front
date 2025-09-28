@@ -18,10 +18,10 @@
 from argparse import ArgumentParser
 from os import path
 
-from ..common import TransmuterExceptionHandler
+from ..common import IgneaExceptionHandler
 from ..semantic.common import (
-    TransmuterBSRDisambiguator,
-    TransmuterBSRToTreeConverter,
+    IgneaBSRDisambiguator,
+    IgneaBSRToTreeConverter,
 )
 from . import __version__
 from .common import Conditions
@@ -33,7 +33,7 @@ from .semantic import LexicalSymbolTableBuilder, SyntacticSymbolTableBuilder
 def main():
     arg_parser = ArgumentParser(
         prog="aether",
-        description="The front-end generator for the Transmuter language processing infrastructure.",
+        description="The front-end generator for the Ignea language processing infrastructure.",
     )
     arg_parser.add_argument(
         "-v",
@@ -67,7 +67,7 @@ def main():
     ) as syntactic_file:
         syntactic_input = syntactic_file.read()
 
-    with TransmuterExceptionHandler():
+    with IgneaExceptionHandler():
         lexical_lexer = Lexer(
             path.join(args.input, "lexical.aether"),
             lexical_input,
@@ -82,12 +82,12 @@ def main():
         syntactic_parser = Parser(syntactic_lexer)
         lexical_parser.parse()
         syntactic_parser.parse()
-        TransmuterBSRDisambiguator.get(lexical_parser.bsr).visit()
-        TransmuterBSRDisambiguator.get(syntactic_parser.bsr).visit()
-        tree_converter = TransmuterBSRToTreeConverter.get(lexical_parser.bsr)
+        IgneaBSRDisambiguator.get(lexical_parser.bsr).visit()
+        IgneaBSRDisambiguator.get(syntactic_parser.bsr).visit()
+        tree_converter = IgneaBSRToTreeConverter.get(lexical_parser.bsr)
         tree_converter.visit()
         lexical_tree = tree_converter.tree
-        tree_converter = TransmuterBSRToTreeConverter.get(syntactic_parser.bsr)
+        tree_converter = IgneaBSRToTreeConverter.get(syntactic_parser.bsr)
         tree_converter.visit()
         syntactic_tree = tree_converter.tree
         lexical_table_builder = LexicalSymbolTableBuilder(lexical_tree)
