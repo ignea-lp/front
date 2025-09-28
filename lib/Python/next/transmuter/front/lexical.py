@@ -35,7 +35,6 @@ __all__ = [
     "TransmuterLexer",
     "TransmuterLexicalError",
     "TransmuterNoTerminalTagError",
-    "TransmuterNoTerminalError",
 ]
 TransmuterLexingState = int
 
@@ -632,6 +631,3 @@ class TransmuterNoTerminalTagError(TransmuterLexicalError):
         """
 
         super().__init__(position, "Could not derive any terminal tag.")
-
-
-TransmuterNoTerminalError = TransmuterNoTerminalTagError

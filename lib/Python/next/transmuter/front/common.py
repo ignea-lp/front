@@ -26,7 +26,6 @@ import warnings
 __all__ = [
     "TransmuterConditions",
     "TransmuterCondition",
-    "transmuter_compute_sccs",
     "TransmuterPosition",
     "TransmuterException",
     "TransmuterExceptionHandler",
@@ -35,67 +34,6 @@ __all__ = [
 ]
 TransmuterConditions = IntFlag
 TransmuterCondition = auto
-
-
-def transmuter_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
-    """
-    Tarjan's strongly connected components algorithm.
-
-    This algorithm is used to detect left-recursions in a CFG and
-    separate recursion cycles as SCCs.
-
-    Args:
-        graph: Mapping from a node to the nodes it points to.
-
-    Returns: Strongly connected components.
-    """
-
-    # Index of visited nodes
-    visited_index: dict[T, int] = {}
-    # Smallest index in stack reachable from nodes
-    min_index = {}
-    stack = []
-    sccs = []
-
-    def compute_scc(v: T) -> None:
-        """
-        Single recursive step of Tarjan's SCC algorithm visiting a node.
-
-        Args:
-            v: Node to visit.
-        """
-
-        index = len(visited_index)
-        min_index[v] = index
-        visited_index[v] = index
-        stack.append(v)
-
-        for w in graph[v]:
-            if w not in visited_index:
-                compute_scc(w)
-                min_index[v] = min(min_index[v], min_index[w])
-            elif w in stack:
-                min_index[v] = min(min_index[v], visited_index[w])
-            # If w is not in stack, (v, w) points to an SCC already
-            # found
-
-        # If v is a root node
-        if min_index[v] == index:
-            scc = set()
-            w = stack.pop()
-            scc.add(w)
-
-            while w != v:
-                w = stack.pop()
-                scc.add(w)
-
-            sccs.append(scc)
-
-    for v in graph:
-        if v not in visited_index:
-            compute_scc(v)
-
-    return sccs
 
 
 class TransmuterMeta(type):
