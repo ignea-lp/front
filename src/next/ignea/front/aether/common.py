@@ -23,5 +23,6 @@ from ignea.front.common import IgneaConditions, IgneaCondition
 
 
 class Conditions(IgneaConditions):
+    ZERO = 0
     syntactic = IgneaCondition()
     lexical = IgneaCondition()
