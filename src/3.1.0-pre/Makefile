@@ -16,10 +16,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 PREVIOUS_PKG=ignea
-PREVIOUS_SPEC_VERSION=2.1.0-pre
+PREVIOUS_SPEC_VERSION=2.0.0
 PREVIOUS_LIB_VERSION=2.0.0
-PREVIOUS_SRC_VERSION=3.1.0-pre
+PREVIOUS_SRC_VERSION=3.0.1
 CURRENT_PKG=ignea
-RELEASE_TYPE=13 2
+RELEASE_TYPE=13 1
 
 include ../../tools/bootstrap/Makefile-common

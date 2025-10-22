@@ -1,0 +1,141 @@
+# Ignea front-end, front-end libraries and utilities for the
+# Ignea language processing infrastructure
+# Copyright (C) 2024  Natan Junges <natanajunges@gmail.com>
+# Copyright (C) 2024, 2025  The Ignea Project
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Whitespace(ignore): ([\t ] | \r? \n)+ ;
+
+Comment(ignore): \# [^\r\n]* ;
+
+Identifier(+OrdChar): [A-Z_a-z] [0-9A-Z_a-z]* ;
+
+Colon(+OrdChar): : ;
+
+Semicolon: \; ;
+
+CommercialAt(+OrdChar): @ ;
+
+LeftParenthesis: \( ;
+
+RightParenthesis: \) ;
+
+VerticalLine: \| ;
+
+Solidus@syntactic: / ;
+
+DoubleVerticalLine: \| \| ;
+
+Comma(+OrdChar): , ;
+
+DoubleAmpersand(+OrdChar): && ;
+
+PlusSign@lexical: \+ ;
+
+HyphenMinus@lexical(+OrdChar): - ;
+
+Ignore@lexical(+OrdChar, -Identifier): ignore ;
+
+Indent@lexical(+OrdChar, -Identifier): indent ;
+
+Dedent@lexical(+OrdChar, -Identifier): dedent ;
+
+Start@syntactic(-Identifier): start ;
+
+Asterisk@lexical: \* ;
+
+QuestionMark@lexical: \? ;
+
+ExpressionRange@lexical: \{ (0 | [1-9] [0-9]*) (, (0 | [1-9] [0-9]*)?)? } ;
+
+LeftCurlyBracket@syntactic: \{ ;
+
+LeftCurlyBracketSolidus@syntactic: \{ / ;
+
+RightCurlyBracket@syntactic: } ;
+
+OrdChar@lexical: [^\000-\037 #$()*+.;?[\\^{|\177] ;
+
+QuotedChar@lexical:
+    \\ (
+        [ #$()*+.;?[\\^abfnrtv{|] |
+        [01] [0-7]{2} |
+        (
+            u ([0-9A-CEFa-cef] [0-9A-Fa-f] | [Dd] [0-7]) |
+            U (0 [1-9A-Fa-f] | 10) [0-9A-Fa-f]{2}
+        ) [0-9A-Fa-f]{2}
+    ) ;
+
+FullStop@lexical: \. ;
+
+BracketExpression@lexical:
+    \[ (
+        \^? (
+            [^\000-\037\\^\177] |
+            \\ (
+                [\\abfnrtv] |
+                [01] [0-7]{2} |
+                (
+                    u ([0-9A-CEFa-cef] [0-9A-Fa-f] | [Dd] [0-7]) |
+                    U (0 [1-9A-Fa-f] | 10) [0-9A-Fa-f]{2}
+                ) [0-9A-Fa-f]{2}
+            )
+        ) |
+        \^ \^
+    ) (
+        - (
+            [^]\000-\037\\\177] |
+            \\ (
+                [\\abfnrtv] |
+                [01] [0-7]{2} |
+                (
+                    u ([0-9A-CEFa-cef] [0-9A-Fa-f] | [Dd] [0-7]) |
+                    U (0 [1-9A-Fa-f] | 10) [0-9A-Fa-f]{2}
+                ) [0-9A-Fa-f]{2}
+            )
+        )
+    )? (
+        (
+            [^]\000-\037\\\177-] |
+            \\ (
+                [\\abfnrtv] |
+                [01] [0-7]{2} |
+                (
+                    u ([0-9A-CEFa-cef] [0-9A-Fa-f] | [Dd] [0-7]) |
+                    U (0 [1-9A-Fa-f] | 10) [0-9A-Fa-f]{2}
+                ) [0-9A-Fa-f]{2}
+            )
+        ) (
+            - (
+                [^]\000-\037\\\177] |
+                \\ (
+                    [\\abfnrtv] |
+                    [01] [0-7]{2} |
+                    (
+                        u ([0-9A-CEFa-cef] [0-9A-Fa-f] | [Dd] [0-7]) |
+                        U (0 [1-9A-Fa-f] | 10) [0-9A-Fa-f]{2}
+                    ) [0-9A-Fa-f]{2}
+                )
+            )
+        )?
+    )* -? ] ;
+
+ExclamationMark(+OrdChar): ! ;
+
+LeftSquareBracket@syntactic: \[ ;
+
+LeftSquareBracketSolidus@syntactic: \[ / ;
+
+RightSquareBracket@syntactic: ] ;
