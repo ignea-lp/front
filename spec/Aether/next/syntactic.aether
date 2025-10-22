@@ -54,7 +54,9 @@ ConjunctionCondition:
 
 ProductionSpecifier:
     (
-        ((PlusSign / HyphenMinus) Identifier / Ignore)@lexical /
+        (
+            (PlusSign / HyphenMinus) Identifier / Ignore / Indent / Dedent
+        )@lexical /
         Start@syntactic
     ) [/Condition] ;
 

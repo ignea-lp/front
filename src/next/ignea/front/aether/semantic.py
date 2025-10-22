@@ -380,6 +380,8 @@ class LexicalSymbol(IgneaSymbol[IgneaNonterminalTreeNode]):
     states_start: list[int] = field(default_factory=list, init=False)
     start: IgneaNonterminalTreeNode | None = field(default=None, init=False)
     ignore: IgneaNonterminalTreeNode | bool = field(default=False, init=False)
+    indent: IgneaNonterminalTreeNode | bool = field(default=False, init=False)
+    dedent: IgneaNonterminalTreeNode | bool = field(default=False, init=False)
     static_positives: list[str] = field(default_factory=list, init=False)
     conditional_positives: dict[str, IgneaNonterminalTreeNode] = field(
         default_factory=dict, init=False

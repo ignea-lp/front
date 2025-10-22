@@ -48,6 +48,10 @@ HyphenMinus@lexical(+OrdChar): - ;
 
 Ignore@lexical(+OrdChar, -Identifier): ignore ;
 
+Indent@lexical(+OrdChar, -Identifier): indent ;
+
+Dedent@lexical(+OrdChar, -Identifier): dedent ;
+
 Start@syntactic(-Identifier): start ;
 
 Asterisk@lexical: \* ;

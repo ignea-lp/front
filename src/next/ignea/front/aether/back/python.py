@@ -159,6 +159,8 @@ class LexicalFileFold(AetherLexicalFileFold):
         states_start: str | None,
         start: str | None,
         ignore: str | None,
+        indent: str | None,
+        dedent: str | None,
         positives: str | None,
         negatives: str | None,
         nfa: str,
@@ -173,6 +175,12 @@ class LexicalFileFold(AetherLexicalFileFold):
 
         if ignore is not None:
             terminal_tag += f"{self.indent(ignore)}\n\n"
+
+        if indent is not None:
+            terminal_tag += f"{self.indent(indent)}\n\n"
+
+        if dedent is not None:
+            terminal_tag += f"{self.indent(dedent)}\n\n"
 
         if positives is not None:
             terminal_tag += f"{self.indent(positives)}\n\n"
@@ -191,6 +199,12 @@ class LexicalFileFold(AetherLexicalFileFold):
 
     def fold_ignore(self, value: str | None) -> str:
         return f"@staticmethod\ndef ignore(conditions):\n    return {value if value is not None else 'True'}"
+
+    def fold_indent(self, value: str | None) -> str:
+        return f"@staticmethod\ndef indent(conditions):\n    return {value if value is not None else 'True'}"
+
+    def fold_dedent(self, value: str | None) -> str:
+        return f"@staticmethod\ndef dedent(conditions):\n    return {value if value is not None else 'True'}"
 
     def fold_positives(
         self, static_positives: str, conditional_positives: list[str]

@@ -169,6 +169,24 @@ class AetherLexicalFileFold(AetherFileFold):
                 if symbol.ignore is not False
                 else None
             )
+            indent = (
+                self.fold_indent(
+                    self.fold_condition(symbol.indent)
+                    if symbol.indent is not True
+                    else None
+                )
+                if symbol.indent is not False
+                else None
+            )
+            dedent = (
+                self.fold_dedent(
+                    self.fold_condition(symbol.dedent)
+                    if symbol.dedent is not True
+                    else None
+                )
+                if symbol.dedent is not False
+                else None
+            )
 
             if (
                 len(symbol.static_positives) > 0
@@ -219,6 +237,8 @@ class AetherLexicalFileFold(AetherFileFold):
                     states_start,
                     start,
                     ignore,
+                    indent,
+                    dedent,
                     positives,
                     negatives,
                     nfa,
@@ -243,6 +263,8 @@ class AetherLexicalFileFold(AetherFileFold):
         states_start: str | None,
         start: str | None,
         ignore: str | None,
+        indent: str | None,
+        dedent: str | None,
         positives: str | None,
         negatives: str | None,
         nfa: str,
@@ -256,6 +278,12 @@ class AetherLexicalFileFold(AetherFileFold):
         raise NotImplementedError()
 
     def fold_ignore(self, value: str | None) -> str:
+        raise NotImplementedError()
+
+    def fold_indent(self, value: str | None) -> str:
+        raise NotImplementedError()
+
+    def fold_dedent(self, value: str | None) -> str:
         raise NotImplementedError()
 
     def fold_positives(
