@@ -30,20 +30,17 @@ from .common import (
 
 __all__ = [
     "IgneaLexingState",
-    "TransmuterLexingState",
     "IgneaTerminalTag",
-    "TransmuterTerminalTag",
     "IgneaTerminal",
-    "TransmuterTerminal",
     "IgneaLexer",
-    "TransmuterLexer",
     "IgneaLexicalError",
-    "TransmuterLexicalError",
+    "IgneaMissingOffsideError",
+    "IgneaMultipleIndentsError",
+    "IgneaMultipleDedentsError",
     "IgneaNoTerminalTagError",
-    "TransmuterNoTerminalTagError",
+    "IgneaIndentationError",
 ]
 IgneaLexingState = int
-TransmuterLexingState = IgneaLexingState
 
 
 class IgneaTerminalTag(metaclass=IgneaMeta):
@@ -89,6 +86,42 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         It will still be included in lexical analysis, but a terminal
         symbol will not be generated. This is useful for
         non-significant whitespace and comments.
+
+        Args:
+            conditions: Runtime condition flags.
+        """
+
+        return False
+
+    @staticmethod
+    def indent(conditions: IgneaConditions) -> bool:
+        """
+        Returns whether this terminal tag must be used to denote indentation in lexical analysis.
+
+        It depends on runtime condition flags. The default value is
+        False.
+
+        It will be excluded from lexical analysis, but a terminal
+        symbol will still be generated. This can be used to apply the
+        off-side rule in languages with significant indentation.
+
+        Args:
+            conditions: Runtime condition flags.
+        """
+
+        return False
+
+    @staticmethod
+    def dedent(conditions: IgneaConditions) -> bool:
+        """
+        Returns whether this terminal tag must be used to denote dedentation in lexical analysis.
+
+        It depends on runtime condition flags. The default value is
+        False.
+
+        It will be excluded from lexical analysis, but a terminal
+        symbol will still be generated. This can be used to apply the
+        off-side rule in languages with significant indentation.
 
         Args:
             conditions: Runtime condition flags.
@@ -165,9 +198,6 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         raise NotImplementedError()
 
 
-TransmuterTerminalTag = IgneaTerminalTag
-
-
 @dataclass(eq=False)
 class IgneaTerminal:
     """
@@ -203,9 +233,6 @@ class IgneaTerminal:
         )
 
 
-TransmuterTerminal = IgneaTerminal
-
-
 @dataclass
 class _IgneaLexerCache:
     """
@@ -221,6 +248,12 @@ class _IgneaLexerCache:
         terminal_tags_ignore:
             Result of `IgneaTerminalTag.ignore` for all terminal
             tags included in lexical analysis.
+        terminal_tags_offside:
+            Result of `IgneaTerminalTag.indent` and
+            `IgneaTerminalTag.dedent`, respectively, for all terminal
+            tags included in lexical analysis, or None if the off-side
+            rule must not be applied. At most one terminal tag of each
+            type (indent and dedent) can be used.
         terminal_tags_positives:
             Result of `IgneaTerminalTag.positives` for all
             terminal tags included in lexical analysis.
@@ -241,6 +274,9 @@ class _IgneaLexerCache:
     terminal_tags_ignore: set[type[IgneaTerminalTag]] = field(
         default_factory=set, init=False, repr=False
     )
+    terminal_tags_offside: (
+        tuple[type[IgneaTerminalTag], type[IgneaTerminalTag]] | None
+    ) = field(default=None, init=False, repr=False)
     terminal_tags_positives: dict[
         type[IgneaTerminalTag], set[type[IgneaTerminalTag]]
     ] = field(default_factory=dict, init=False, repr=False)
@@ -255,6 +291,149 @@ class _IgneaLexerCache:
         tuple[type[IgneaTerminalTag], IgneaLexingState, str],
         tuple[bool, IgneaLexingState],
     ] = field(default_factory=dict, init=False, repr=False)
+
+
+@dataclass
+class _IgneaOffside:
+    """
+    Driver of the off-side rule.
+
+    Contains state and logic required to apply the off-side rule.
+
+    Attributes:
+        STATES_START:
+            Bit mask indicating which NFA states are starting states.
+        terminal_tags:
+            Tags used to denote indentation and dedentation,
+            respectively.
+        _stack: Indentation level stack.
+        _state: Off-side rule NFA state.
+    """
+
+    STATES_START: ClassVar[IgneaLexingState] = 1 << 0 | 1 << 1 | 1 << 2
+
+    terminal_tags: tuple[type[IgneaTerminalTag], type[IgneaTerminalTag]] | None
+    _stack: list[int] = field(default_factory=list, init=False, repr=False)
+    _state: IgneaLexingState = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        """Initializes `_stack` and `_state`."""
+
+        self._stack.append(1)
+        self._state = self.STATES_START
+
+    def nfa(self, char: str) -> bool:
+        """
+        Processes a single step of the NFA.
+
+        This NFA recognizes the regular expression:
+        (\\n* [\\t ]* ([^\\t\\n ] [^\\n]* \\n)?)*
+
+        Args:
+            char: Current input character to be processed.
+
+        Returns:
+            Whether `char` is the first non-whitespace character of
+            the line.
+        """
+
+        state_accept = False
+        next_states = 0
+
+        if 1 << 0 & self._state and char == "\n":
+            next_states |= 1 << 0 | 1 << 1 | 1 << 2
+
+        if 1 << 1 & self._state and char in "\t ":
+            next_states |= 1 << 0 | 1 << 1 | 1 << 2
+
+        if 1 << 2 & self._state and char not in "\t\n ":
+            state_accept = True
+            next_states |= 1 << 0 | 1 << 3
+
+        if 1 << 3 & self._state and char != "\n":
+            next_states |= 1 << 0 | 1 << 3
+
+        self._state = next_states
+        return state_accept
+
+    def prepend_offside_terminals(
+        self,
+        start_position: IgneaPosition,
+        current_terminal: IgneaTerminal | None = None,
+    ) -> IgneaTerminal | None:
+        """
+        Detects change of indentation levels and prepends off-side symbols to current terminal.
+
+        Args:
+            start_position: Position where lexical analysis started.
+            current_terminal:
+                Current terminal symbol, or None if reached end of
+                file.
+
+        Returns:
+            First terminal symbol of sequence, or None if reached end
+            of file.
+
+        Raises:
+            IgneaIndentationError: Indentation does not match.
+        """
+
+        if self.terminal_tags is not None:
+            if current_terminal is None:
+                for _ in range(len(self._stack) - 1):
+                    current_terminal = self._get_offside_terminal(
+                        start_position, current_terminal
+                    )
+                    self._stack.pop()
+            elif start_position.column < self._stack[-1]:
+                while start_position.column < self._stack[-1]:
+                    current_terminal = self._get_offside_terminal(
+                        start_position, current_terminal
+                    )
+                    self._stack.pop()
+
+                if start_position.column > self._stack[-1]:
+                    raise IgneaIndentationError(start_position)
+            elif start_position.column > self._stack[-1]:
+                current_terminal = self._get_offside_terminal(
+                    start_position, current_terminal, True
+                )
+                self._stack.append(start_position.column)
+
+        return current_terminal
+
+    def _get_offside_terminal(
+        self,
+        start_position: IgneaPosition,
+        current_terminal: IgneaTerminal | None,
+        indent: bool = False,
+    ) -> IgneaTerminal:
+        """
+        Generates off-side terminal symbol at provided position, prepending it to current terminal.
+
+        Args:
+            start_position: Position where lexical analysis started.
+            current_terminal:
+                Current terminal symbol, or None if reached end of
+                file.
+            indent:
+                Whether to generate an indentation or dedentation
+                symbol.
+
+        Returns: Generated off-side terminal symbol.
+        """
+
+        start_position = start_position.copy()
+        accepted_position = start_position.copy()
+        assert self.terminal_tags is not None
+        offside_terminal = IgneaTerminal(
+            {self.terminal_tags[0 if indent else 1]},
+            "",
+            start_position,
+            accepted_position,
+        )
+        offside_terminal.next = current_terminal
+        return offside_terminal
 
 
 @dataclass
@@ -284,6 +463,7 @@ class _IgneaLexerStore:
         next_terminal_tags:
             Next terminal tags to be processed. It must always be
             empty after use.
+        offside: State and logic required to apply the off-side rule.
     """
 
     current_position: IgneaPosition = field(init=False, repr=False)
@@ -302,6 +482,7 @@ class _IgneaLexerStore:
     next_terminal_tags: set[type[IgneaTerminalTag]] = field(
         default_factory=set, init=False, repr=False
     )
+    offside: _IgneaOffside = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         """Initializes `current_position`."""
@@ -346,12 +527,41 @@ class IgneaLexer:
     )
 
     def __post_init__(self) -> None:
-        """Initializes `start_position` and `_cache`."""
+        """
+        Initializes `start_position`, `_cache` and `_store.offside`.
+
+        Raises:
+            IgneaMultipleIndentsError:
+                Multiple indenting symbols from given conditions.
+            IgneaMultipleDedentsError:
+                Multiple dedenting symbols from given conditions.
+            IgneaMissingOffsideError:
+                Missing indenting/dedenting symbol from given
+                conditions.
+        """
 
         self.start_position = IgneaPosition(self.filename, 0, 1, 1)
+        terminal_tags_offside: list[type[IgneaTerminalTag] | None] = [
+            None,
+            None,
+        ]
 
         for terminal_tag in self.TERMINAL_TAGS:
             if terminal_tag.start(self.conditions):
+                if terminal_tag.indent(self.conditions):
+                    if terminal_tags_offside[0] is not None:
+                        raise IgneaMultipleIndentsError()
+
+                    terminal_tags_offside[0] = terminal_tag
+                    continue
+
+                if terminal_tag.dedent(self.conditions):
+                    if terminal_tags_offside[1] is not None:
+                        raise IgneaMultipleDedentsError()
+
+                    terminal_tags_offside[1] = terminal_tag
+                    continue
+
                 self._cache.states_start[terminal_tag] = (
                     terminal_tag.STATES_START
                 )
@@ -363,12 +573,30 @@ class IgneaLexer:
                     tag
                     for tag in terminal_tag.positives(self.conditions)
                     if tag.start(self.conditions)
+                    and not tag.indent(self.conditions)
+                    and not tag.dedent(self.conditions)
                 }
                 self._cache.terminal_tags_negatives[terminal_tag] = {
                     tag
                     for tag in terminal_tag.negatives(self.conditions)
                     if tag.start(self.conditions)
+                    and not tag.indent(self.conditions)
+                    and not tag.dedent(self.conditions)
                 }
+
+        if (terminal_tags_offside[0] is None) != (
+            terminal_tags_offside[1] is None
+        ):
+            raise IgneaMissingOffsideError()
+
+        if terminal_tags_offside[0] is not None:
+            assert terminal_tags_offside[1] is not None
+            self._cache.terminal_tags_offside = (
+                terminal_tags_offside[0],
+                terminal_tags_offside[1],
+            )
+
+        self._store.offside = _IgneaOffside(self._cache.terminal_tags_offside)
 
     def next_terminal(
         self, current_terminal: IgneaTerminal | None
@@ -384,6 +612,7 @@ class IgneaLexer:
         Returns: Next terminal symbol, or None if reached end of file.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
@@ -422,12 +651,15 @@ class IgneaLexer:
         Returns: Next terminal symbol, or None if reached end of file.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
 
         if start_position.index_ == len(self.input):
-            return None
+            return self._store.offside.prepend_offside_terminals(
+                start_position
+            )
 
         start_position = start_position.copy()
         self._store.current_position.update(start_position)
@@ -435,6 +667,7 @@ class IgneaLexer:
         self._store.current_states.update(self._cache.states_start)
         accepted_position = start_position.copy()
         accepted_terminal_tags: set[type[IgneaTerminalTag]] = set()
+        is_offside = False
 
         while True:
             while len(
@@ -457,6 +690,21 @@ class IgneaLexer:
                     )
                     # next_terminal_tags is always empty after use
                     self._store.next_terminal_tags.clear()
+
+                    # The off-side NFA needs to run at this point
+                    # because otherwise it would run multiple times
+                    # over the same characters, due to the
+                    # backtracking of the longest match principle
+                    for index_ in range(
+                        accepted_position.index_,
+                        self._store.current_position.index_,
+                    ):
+                        if self._store.offside.nfa(self.input[index_]):
+                            # Whether the first non-whitespace
+                            # character of the line is at the start of
+                            # a terminal
+                            is_offside |= index_ == start_position.index_
+
                     accepted_position.update(self._store.current_position)
 
                 self._store.current_states, self._store.next_states = (
@@ -489,7 +737,7 @@ class IgneaLexer:
                 )
 
             if len(accepted_terminal_tags) > 0:
-                return IgneaTerminal(
+                next_terminal: IgneaTerminal | None = IgneaTerminal(
                     accepted_terminal_tags,
                     self.input[
                         start_position.index_ : accepted_position.index_
@@ -498,14 +746,26 @@ class IgneaLexer:
                     accepted_position,
                 )
 
+                if is_offside:
+                    next_terminal = (
+                        self._store.offside.prepend_offside_terminals(
+                            start_position, next_terminal
+                        )
+                    )
+
+                return next_terminal
+
             if self._store.current_position.index_ == len(self.input):
-                return None
+                return self._store.offside.prepend_offside_terminals(
+                    start_position
+                )
 
             # Skip ignored terminal symbol and restart
             start_position.update(accepted_position)
             self._store.current_position.update(accepted_position)
             assert len(self._store.current_states) == 0
             self._store.current_states.update(self._cache.states_start)
+            is_offside = False
 
     def _process_nfas(self, char: str) -> None:
         """
@@ -615,9 +875,6 @@ class IgneaLexer:
         positive_terminal_tags -= negative_terminal_tags
 
 
-TransmuterLexer = IgneaLexer
-
-
 class IgneaLexicalError(IgneaException):
     """Lexical error processing an input file."""
 
@@ -633,7 +890,40 @@ class IgneaLexicalError(IgneaException):
         super().__init__(position, "Lexical Error", description)
 
 
-TransmuterLexicalError = IgneaLexicalError
+class IgneaMissingOffsideError(IgneaLexicalError):
+    """Missing indenting/dedenting symbol from given conditions."""
+
+    def __init__(self) -> None:
+        """Initializes the error with the required information."""
+
+        super().__init__(
+            IgneaPosition("<conditions>", 0, 0, 0),
+            "Missing indenting/dedenting symbol from given conditions.",
+        )
+
+
+class IgneaMultipleIndentsError(IgneaLexicalError):
+    """Multiple indenting symbols from given conditions."""
+
+    def __init__(self) -> None:
+        """Initializes the error with the required information."""
+
+        super().__init__(
+            IgneaPosition("<conditions>", 0, 0, 0),
+            "Multiple indenting symbols from given conditions.",
+        )
+
+
+class IgneaMultipleDedentsError(IgneaLexicalError):
+    """Multiple dedenting symbols from given conditions."""
+
+    def __init__(self) -> None:
+        """Initializes the error with the required information."""
+
+        super().__init__(
+            IgneaPosition("<conditions>", 0, 0, 0),
+            "Multiple dedenting symbols from given conditions.",
+        )
 
 
 class IgneaNoTerminalTagError(IgneaLexicalError):
@@ -650,4 +940,15 @@ class IgneaNoTerminalTagError(IgneaLexicalError):
         super().__init__(position, "Could not derive any terminal tag.")
 
 
-TransmuterNoTerminalTagError = IgneaNoTerminalTagError
+class IgneaIndentationError(IgneaLexicalError):
+    """Indentation does not match processing an input file."""
+
+    def __init__(self, position: IgneaPosition) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            position: File and position where the error happened.
+        """
+
+        super().__init__(position, "Indentation does not match.")

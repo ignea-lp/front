@@ -355,6 +355,26 @@ class ProductionSpecifier(IgneaNonterminalType):
                         else:
                             break  # end option
 
+                        try:  # begin option
+                            next_states.append(next_states[-1])
+                            next_states[-1] = parser.derive(
+                                Indent, next_states[-1]
+                            )
+                        except IgneaDerivationException:
+                            next_states.pop()
+                        else:
+                            break  # end option
+
+                        try:  # begin option
+                            next_states.append(next_states[-1])
+                            next_states[-1] = parser.derive(
+                                Dedent, next_states[-1]
+                            )
+                        except IgneaDerivationException:
+                            next_states.pop()
+                        else:
+                            break  # end option
+
                         raise IgneaDerivationException()
 
                     next_states[-1] = next_states.pop()  # end selection

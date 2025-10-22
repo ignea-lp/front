@@ -31,32 +31,19 @@ from .lexical import IgneaTerminalTag, IgneaTerminal, IgneaLexer
 
 __all__ = [
     "ignea_selection",
-    "transmuter_selection",
     "ignea_compute_sccs",
-    "transmuter_compute_sccs",
     "IgneaNonterminalType",
-    "TransmuterNonterminalType",
     "IgneaParsingState",
-    "TransmuterParsingState",
     "IgneaEPN",
-    "TransmuterEPN",
     "IgneaBSR",
-    "TransmuterBSR",
     "IgneaParser",
-    "TransmuterParser",
     "IgneaSyntacticError",
-    "TransmuterSyntacticError",
     "IgneaNoStartError",
-    "TransmuterNoStartError",
     "IgneaMultipleStartsError",
-    "TransmuterMultipleStartsError",
     "IgneaNoDerivationError",
-    "TransmuterNoDerivationError",
     "IgneaDerivationException",
-    "TransmuterDerivationException",
 ]
 ignea_selection: range = range(1)
-transmuter_selection = ignea_selection
 
 
 def ignea_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
@@ -120,9 +107,6 @@ def ignea_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
     return sccs
 
 
-transmuter_compute_sccs = ignea_compute_sccs
-
-
 class IgneaNonterminalType(metaclass=IgneaMeta):
     """
     Definition and implementation of a nonterminal type.
@@ -183,6 +167,7 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
             current_state: Current parsing state.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
@@ -212,6 +197,7 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
         Returns: Next parsing states.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
             IgneaDerivationException:
@@ -219,9 +205,6 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
         """
 
         raise NotImplementedError()
-
-
-TransmuterNonterminalType = IgneaNonterminalType
 
 
 class IgneaParsingState(NamedTuple):
@@ -262,9 +245,6 @@ class IgneaParsingState(NamedTuple):
         )
 
 
-TransmuterParsingState = IgneaParsingState
-
-
 class IgneaEPN(NamedTuple):
     """
     BSR Extended Packed Node.
@@ -283,9 +263,6 @@ class IgneaEPN(NamedTuple):
         """Returns the representation of the EPN as a tuple."""
 
         return repr((self.type_, self.state))
-
-
-TransmuterEPN = IgneaEPN
 
 
 @dataclass
@@ -393,9 +370,6 @@ class IgneaBSR:
             return set()
 
         return self.epns[key]
-
-
-TransmuterBSR = IgneaBSR
 
 
 @dataclass
@@ -510,6 +484,7 @@ class IgneaParser:
         Performs syntactic analysis on input.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
             IgneaNoDerivationError:
@@ -573,6 +548,7 @@ class IgneaParser:
         Returns: Next parsing states.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
             IgneaDerivationException:
@@ -629,6 +605,7 @@ class IgneaParser:
             tag.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
@@ -636,12 +613,29 @@ class IgneaParser:
         self.bsr.add(IgneaEPN(None, current_state))
         next_terminal = self.lexer.next_terminal(current_state.end_terminal)
 
-        if next_terminal is not None and (
-            self._eoi is None
-            or self._eoi.start_position.index_
-            < next_terminal.start_position.index_
-        ):
-            self._eoi = next_terminal
+        if next_terminal is not None and next_terminal != self._eoi:
+            if (
+                self._eoi is None
+                or next_terminal.start_position.index_
+                > self._eoi.start_position.index_
+            ):
+                self._eoi = next_terminal
+            elif (
+                next_terminal.start_position.index_
+                == self._eoi.start_position.index_
+            ):
+                eoi: IgneaTerminal | None = self._eoi
+
+                while (
+                    eoi is not None
+                    and next_terminal != eoi
+                    and next_terminal.start_position.index_
+                    == eoi.start_position.index_
+                ):
+                    eoi = eoi.next
+
+                if next_terminal == eoi:
+                    self._eoi = next_terminal
 
         if next_terminal is None or cls not in next_terminal.tags:
             return None
@@ -676,6 +670,7 @@ class IgneaParser:
         Returns: Next parsing states.
 
         Raises:
+            IgneaIndentationError: Indentation does not match.
             IgneaNoTerminalTagError:
                 Could not derive any terminal tag.
         """
@@ -730,9 +725,6 @@ class IgneaParser:
         }
 
 
-TransmuterParser = IgneaParser
-
-
 class IgneaSyntacticError(IgneaException):
     """Syntactic error processing an input file."""
 
@@ -748,9 +740,6 @@ class IgneaSyntacticError(IgneaException):
         super().__init__(position, "Syntactic Error", description)
 
 
-TransmuterSyntacticError = IgneaSyntacticError
-
-
 class IgneaNoStartError(IgneaSyntacticError):
     """Could not determine starting symbol from given conditions."""
 
@@ -763,9 +752,6 @@ class IgneaNoStartError(IgneaSyntacticError):
         )
 
 
-TransmuterNoStartError = IgneaNoStartError
-
-
 class IgneaMultipleStartsError(IgneaSyntacticError):
     """Multiple starting symbols from given conditions."""
 
@@ -776,9 +762,6 @@ class IgneaMultipleStartsError(IgneaSyntacticError):
             IgneaPosition("<conditions>", 0, 0, 0),
             "Multiple starting symbols from given conditions.",
         )
-
-
-TransmuterMultipleStartsError = IgneaMultipleStartsError
 
 
 class IgneaNoDerivationError(IgneaSyntacticError):
@@ -797,9 +780,6 @@ class IgneaNoDerivationError(IgneaSyntacticError):
         )
 
 
-TransmuterNoDerivationError = IgneaNoDerivationError
-
-
 class IgneaDerivationException(Exception):
     """
     Could not derive any production rule.
@@ -807,6 +787,3 @@ class IgneaDerivationException(Exception):
     **This exception must never leak through the public API and reach
     user code.**
     """
-
-
-TransmuterDerivationException = IgneaDerivationException

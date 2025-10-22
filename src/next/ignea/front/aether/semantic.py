@@ -40,6 +40,8 @@ from .lexical import (
     PlusSign,
     HyphenMinus,
     Ignore,
+    Indent,
+    Dedent,
     Asterisk,
     QuestionMark,
     ExpressionRange,
@@ -441,13 +443,23 @@ class LexicalSymbolTableBuilder(IgneaTreeVisitor):
                     symbol.conditional_negatives[negative] = specifier.n(2)
                 else:
                     symbol.static_negatives.append(negative)
-            else:
-                assert specifier.children[0].type_ == Ignore
-
+            elif specifier.children[0].type_ == Ignore:
                 if len(specifier.children) > 1:
                     symbol.ignore = specifier.n(1)
                 else:
                     symbol.ignore = True
+            elif specifier.children[0].type_ == Indent:
+                if len(specifier.children) > 1:
+                    symbol.indent = specifier.n(1)
+                else:
+                    symbol.indent = True
+            else:
+                assert specifier.children[0].type_ == Dedent
+
+                if len(specifier.children) > 1:
+                    symbol.dedent = specifier.n(1)
+                else:
+                    symbol.dedent = True
 
     def top_before(self) -> None:
         self.condition_table.symbols.clear()

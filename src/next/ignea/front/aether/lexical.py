@@ -327,6 +327,88 @@ class Ignore(IgneaTerminalTag):
         return state_accept, next_states
 
 
+class Indent(IgneaTerminalTag):
+    @staticmethod
+    def start(conditions):
+        return Conditions.lexical in conditions
+
+    @staticmethod
+    def positives(conditions):
+        positives = {OrdChar}
+        return positives
+
+    @staticmethod
+    def negatives(conditions):
+        negatives = {Identifier}
+        return negatives
+
+    @staticmethod
+    def nfa(current_states, char):
+        state_accept = False
+        next_states = 0
+
+        if 1 << 0 & current_states and char == "i":
+            next_states |= 1 << 1
+
+        if 1 << 1 & current_states and char == "n":
+            next_states |= 1 << 2
+
+        if 1 << 2 & current_states and char == "d":
+            next_states |= 1 << 3
+
+        if 1 << 3 & current_states and char == "e":
+            next_states |= 1 << 4
+
+        if 1 << 4 & current_states and char == "n":
+            next_states |= 1 << 5
+
+        if 1 << 5 & current_states and char == "t":
+            state_accept = True
+
+        return state_accept, next_states
+
+
+class Dedent(IgneaTerminalTag):
+    @staticmethod
+    def start(conditions):
+        return Conditions.lexical in conditions
+
+    @staticmethod
+    def positives(conditions):
+        positives = {OrdChar}
+        return positives
+
+    @staticmethod
+    def negatives(conditions):
+        negatives = {Identifier}
+        return negatives
+
+    @staticmethod
+    def nfa(current_states, char):
+        state_accept = False
+        next_states = 0
+
+        if 1 << 0 & current_states and char == "d":
+            next_states |= 1 << 1
+
+        if 1 << 1 & current_states and char == "e":
+            next_states |= 1 << 2
+
+        if 1 << 2 & current_states and char == "d":
+            next_states |= 1 << 3
+
+        if 1 << 3 & current_states and char == "e":
+            next_states |= 1 << 4
+
+        if 1 << 4 & current_states and char == "n":
+            next_states |= 1 << 5
+
+        if 1 << 5 & current_states and char == "t":
+            state_accept = True
+
+        return state_accept, next_states
+
+
 class Start(IgneaTerminalTag):
     @staticmethod
     def start(conditions):
@@ -1048,6 +1130,8 @@ class Lexer(IgneaLexer):
         PlusSign,
         HyphenMinus,
         Ignore,
+        Indent,
+        Dedent,
         Start,
         Asterisk,
         QuestionMark,
