@@ -25,15 +25,24 @@ import warnings
 
 __all__ = [
     "IgneaConditions",
+    "TransmuterConditions",
     "IgneaCondition",
+    "TransmuterCondition",
     "IgneaPosition",
+    "TransmuterPosition",
     "IgneaException",
+    "TransmuterException",
     "IgneaExceptionHandler",
+    "TransmuterExceptionHandler",
     "IgneaWarning",
+    "TransmuterWarning",
     "ignea_init_warnings",
+    "transmuter_init_warnings",
 ]
 IgneaConditions = IntFlag
+TransmuterConditions = IgneaConditions
 IgneaCondition = auto
+TransmuterCondition = IgneaCondition
 
 
 class IgneaMeta(type):
@@ -96,6 +105,9 @@ class IgneaPosition:
         self.column = position.column
 
 
+TransmuterPosition = IgneaPosition
+
+
 class IgneaException(Exception):
     """Generic exception processing an input file."""
 
@@ -112,6 +124,9 @@ class IgneaException(Exception):
         """
 
         super().__init__(f"{position}: {type_}: {description}")
+
+
+TransmuterException = IgneaException
 
 
 class IgneaExceptionHandler:
@@ -150,8 +165,14 @@ class IgneaExceptionHandler:
         return False
 
 
+TransmuterExceptionHandler = IgneaExceptionHandler
+
+
 class IgneaWarning(IgneaException, Warning):
     """Generic warning processing an input file."""
+
+
+TransmuterWarning = IgneaWarning
 
 
 def ignea_init_warnings() -> None:
@@ -190,3 +211,6 @@ def ignea_init_warnings() -> None:
 
     warnings.formatwarning = formatwarning
     warnings.filterwarnings("always", category=IgneaWarning)
+
+
+transmuter_init_warnings = ignea_init_warnings

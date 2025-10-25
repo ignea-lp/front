@@ -30,17 +30,24 @@ from .common import (
 
 __all__ = [
     "IgneaLexingState",
+    "TransmuterLexingState",
     "IgneaTerminalTag",
+    "TransmuterTerminalTag",
     "IgneaTerminal",
+    "TransmuterTerminal",
     "IgneaLexer",
+    "TransmuterLexer",
     "IgneaLexicalError",
+    "TransmuterLexicalError",
     "IgneaMissingOffsideError",
     "IgneaMultipleIndentsError",
     "IgneaMultipleDedentsError",
     "IgneaNoTerminalTagError",
+    "TransmuterNoTerminalTagError",
     "IgneaIndentationError",
 ]
 IgneaLexingState = int
+TransmuterLexingState = IgneaLexingState
 
 
 class IgneaTerminalTag(metaclass=IgneaMeta):
@@ -198,6 +205,9 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         raise NotImplementedError()
 
 
+TransmuterTerminalTag = IgneaTerminalTag
+
+
 @dataclass(eq=False)
 class IgneaTerminal:
     """
@@ -231,6 +241,9 @@ class IgneaTerminal:
         return repr(
             (self.tags, self.value, self.start_position, self.end_position)
         )
+
+
+TransmuterTerminal = IgneaTerminal
 
 
 @dataclass
@@ -875,6 +888,9 @@ class IgneaLexer:
         positive_terminal_tags -= negative_terminal_tags
 
 
+TransmuterLexer = IgneaLexer
+
+
 class IgneaLexicalError(IgneaException):
     """Lexical error processing an input file."""
 
@@ -888,6 +904,9 @@ class IgneaLexicalError(IgneaException):
         """
 
         super().__init__(position, "Lexical Error", description)
+
+
+TransmuterLexicalError = IgneaLexicalError
 
 
 class IgneaMissingOffsideError(IgneaLexicalError):
@@ -938,6 +957,9 @@ class IgneaNoTerminalTagError(IgneaLexicalError):
         """
 
         super().__init__(position, "Could not derive any terminal tag.")
+
+
+TransmuterNoTerminalTagError = IgneaNoTerminalTagError
 
 
 class IgneaIndentationError(IgneaLexicalError):

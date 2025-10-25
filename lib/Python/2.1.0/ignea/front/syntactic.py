@@ -31,19 +31,32 @@ from .lexical import IgneaTerminalTag, IgneaTerminal, IgneaLexer
 
 __all__ = [
     "ignea_selection",
+    "transmuter_selection",
     "ignea_compute_sccs",
+    "transmuter_compute_sccs",
     "IgneaNonterminalType",
+    "TransmuterNonterminalType",
     "IgneaParsingState",
+    "TransmuterParsingState",
     "IgneaEPN",
+    "TransmuterEPN",
     "IgneaBSR",
+    "TransmuterBSR",
     "IgneaParser",
+    "TransmuterParser",
     "IgneaSyntacticError",
+    "TransmuterSyntacticError",
     "IgneaNoStartError",
+    "TransmuterNoStartError",
     "IgneaMultipleStartsError",
+    "TransmuterMultipleStartsError",
     "IgneaNoDerivationError",
+    "TransmuterNoDerivationError",
     "IgneaDerivationException",
+    "TransmuterDerivationException",
 ]
 ignea_selection: range = range(1)
+transmuter_selection = ignea_selection
 
 
 def ignea_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
@@ -105,6 +118,9 @@ def ignea_compute_sccs[T](graph: dict[T, set[T]]) -> list[set[T]]:
             compute_scc(v)
 
     return sccs
+
+
+transmuter_compute_sccs = ignea_compute_sccs
 
 
 class IgneaNonterminalType(metaclass=IgneaMeta):
@@ -207,6 +223,9 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
         raise NotImplementedError()
 
 
+TransmuterNonterminalType = IgneaNonterminalType
+
+
 class IgneaParsingState(NamedTuple):
     """
     BSR parsing state.
@@ -245,6 +264,9 @@ class IgneaParsingState(NamedTuple):
         )
 
 
+TransmuterParsingState = IgneaParsingState
+
+
 class IgneaEPN(NamedTuple):
     """
     BSR Extended Packed Node.
@@ -263,6 +285,9 @@ class IgneaEPN(NamedTuple):
         """Returns the representation of the EPN as a tuple."""
 
         return repr((self.type_, self.state))
+
+
+TransmuterEPN = IgneaEPN
 
 
 @dataclass
@@ -370,6 +395,9 @@ class IgneaBSR:
             return set()
 
         return self.epns[key]
+
+
+TransmuterBSR = IgneaBSR
 
 
 @dataclass
@@ -725,6 +753,9 @@ class IgneaParser:
         }
 
 
+TransmuterParser = IgneaParser
+
+
 class IgneaSyntacticError(IgneaException):
     """Syntactic error processing an input file."""
 
@@ -740,6 +771,9 @@ class IgneaSyntacticError(IgneaException):
         super().__init__(position, "Syntactic Error", description)
 
 
+TransmuterSyntacticError = IgneaSyntacticError
+
+
 class IgneaNoStartError(IgneaSyntacticError):
     """Could not determine starting symbol from given conditions."""
 
@@ -752,6 +786,9 @@ class IgneaNoStartError(IgneaSyntacticError):
         )
 
 
+TransmuterNoStartError = IgneaNoStartError
+
+
 class IgneaMultipleStartsError(IgneaSyntacticError):
     """Multiple starting symbols from given conditions."""
 
@@ -762,6 +799,9 @@ class IgneaMultipleStartsError(IgneaSyntacticError):
             IgneaPosition("<conditions>", 0, 0, 0),
             "Multiple starting symbols from given conditions.",
         )
+
+
+TransmuterMultipleStartsError = IgneaMultipleStartsError
 
 
 class IgneaNoDerivationError(IgneaSyntacticError):
@@ -780,6 +820,9 @@ class IgneaNoDerivationError(IgneaSyntacticError):
         )
 
 
+TransmuterNoDerivationError = IgneaNoDerivationError
+
+
 class IgneaDerivationException(Exception):
     """
     Could not derive any production rule.
@@ -787,3 +830,6 @@ class IgneaDerivationException(Exception):
     **This exception must never leak through the public API and reach
     user code.**
     """
+
+
+TransmuterDerivationException = IgneaDerivationException
