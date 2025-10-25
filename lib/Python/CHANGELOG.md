@@ -1,0 +1,28 @@
+# Version 2.1.0
+
+- Add support of off-side rule.
+
+# Version 2.0.0
+
+- Remove deprecated APIs.
+- Rename APIs to reflect project renaming.
+- Deprecate `TransmuterConditions`, `TransmuterCondition`, `TransmuterPosition`, `TransmuterException`, `TransmuterExceptionHandler`, `TransmuterWarning`, `transmuter_init_warnings`, `TransmuterLexingState`, `TransmuterTerminalTag`, `TransmuterTerminal`, `TransmuterLexer`, `TransmuterLexicalError`, `TransmuterNoTerminalTagError`, `transmuter_selection`, `transmuter_compute_sccs`, `TransmuterNonterminalType`, `TransmuterParsingState`, `TransmuterEPN`, `TransmuterBSR`, `TransmuterParser`, `TransmuterSyntacticError`, `TransmuterNoStartError`, `TransmuterMultipleStartsError`, `TransmuterNoDerivationError` and `TransmuterDerivationException`.
+
+# Version 1.1.0
+
+- Add comments to code.
+- Improve variable names.
+- Memoize NFAs in lexer.
+- Split lexer cache data into separate object.
+- Optimize update of accepted terminal tags in `_get_terminal`.
+- Store lexer transient containers into separate object so it can be reused.
+- Simplify syntactic internal error.
+- Move `transmuter_compute_sccs` to syntactic module.
+- Add docstrings to code.
+- Improve internal exception and method names.
+- Define module public APIs.
+- Deprecate `TransmuterNoTerminalError`, `TransmuterParser.call` and `TransmuterInternalError`.
+
+# Version 1.0.0
+
+Initial release.
