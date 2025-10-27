@@ -665,9 +665,10 @@ class IgneaLexer:
         self._store.current_position.update(start_position)
         self._store.current_states.clear()
         self._store.current_states.update(self._cache.states_start)
+        last_terminal_tags: list[type[IgneaTerminalTag]] = []
+        is_offside = False
         accepted_position = start_position.copy()
         accepted_terminal_tags: set[type[IgneaTerminalTag]] = set()
-        is_offside = False
 
         while True:
             while len(
@@ -711,11 +712,23 @@ class IgneaLexer:
                     self._store.next_states,
                     self._store.current_states,
                 )
+
+                # If no NFA can continue processing the input, save
+                # the terminal tags of those that got furthest in case
+                # an error needs to be raised
+                if len(self._store.current_states) == 0 and len(
+                    self._store.next_states
+                ) < len(self._cache.states_start):
+                    last_terminal_tags.clear()
+                    last_terminal_tags.extend(self._store.next_states)
+
                 # next_states is always empty after use
                 self._store.next_states.clear()
 
             if len(accepted_terminal_tags) == 0:
-                raise IgneaNoTerminalTagError(start_position)
+                raise IgneaNoTerminalTagError(
+                    start_position, last_terminal_tags
+                )
 
             initial_accepted_terminal_tags = frozenset(accepted_terminal_tags)
 
@@ -765,6 +778,7 @@ class IgneaLexer:
             self._store.current_position.update(accepted_position)
             assert len(self._store.current_states) == 0
             self._store.current_states.update(self._cache.states_start)
+            last_terminal_tags.clear()
             is_offside = False
 
     def _process_nfas(self, char: str) -> None:
@@ -929,7 +943,11 @@ class IgneaMultipleDedentsError(IgneaLexicalError):
 class IgneaNoTerminalTagError(IgneaLexicalError):
     """Could not derive any terminal tag processing an input file."""
 
-    def __init__(self, position: IgneaPosition) -> None:
+    def __init__(
+        self,
+        position: IgneaPosition,
+        last_terminal_tags: list[type[IgneaTerminalTag]],
+    ) -> None:
         """
         Initializes the error with the required information.
 
@@ -937,7 +955,13 @@ class IgneaNoTerminalTagError(IgneaLexicalError):
             position: File and position where the error happened.
         """
 
-        super().__init__(position, "Could not derive any terminal tag.")
+        if len(last_terminal_tags) > 0:
+            super().__init__(
+                position,
+                f"Could not derive any terminal tag. Closest matches: {last_terminal_tags}.",
+            )
+        else:
+            super().__init__(position, "Could not derive any terminal tag.")
 
 
 class IgneaIndentationError(IgneaLexicalError):
