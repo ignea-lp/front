@@ -25,7 +25,8 @@ from .common import (
     IgneaConditions,
     IgneaMeta,
     IgneaPosition,
-    IgneaException,
+    IgneaError,
+    IgneaConditionsError,
 )
 from .lexical import IgneaTerminalTag, IgneaTerminal, IgneaLexer
 
@@ -37,9 +38,10 @@ __all__ = [
     "IgneaEPN",
     "IgneaBSR",
     "IgneaParser",
-    "IgneaSyntacticError",
+    "IgneaSyntacticConditionsError",
     "IgneaNoStartError",
     "IgneaMultipleStartsError",
+    "IgneaSyntacticError",
     "IgneaNoDerivationError",
     "IgneaDerivationException",
 ]
@@ -447,7 +449,7 @@ class IgneaParser:
         for nonterminal_type in self.NONTERMINAL_TYPES:
             if nonterminal_type.start(self.lexer.conditions):
                 if nonterminal_type_start is not None:
-                    raise IgneaMultipleStartsError()
+                    raise IgneaMultipleStartsError(nonterminal_type)
 
                 nonterminal_type_start = nonterminal_type
 
@@ -725,7 +727,62 @@ class IgneaParser:
         }
 
 
-class IgneaSyntacticError(IgneaException):
+class IgneaSyntacticConditionsError(IgneaConditionsError):
+    """Syntactic error processing runtime conditions."""
+
+    def __init__(
+        self,
+        nonterminal_type: type[IgneaNonterminalType] | None,
+        description: str,
+    ) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            nonterminal_type:
+                Nonterminal type where the error happened, or None if
+                it is not location-specific.
+            description: Description of the error.
+        """
+
+        super().__init__(
+            str(nonterminal_type) if nonterminal_type is not None else None,
+            "Syntactic",
+            description,
+        )
+
+
+class IgneaNoStartError(IgneaSyntacticConditionsError):
+    """Could not determine starting symbol from given conditions."""
+
+    def __init__(self) -> None:
+        """Initializes the error with the required information."""
+
+        super().__init__(
+            None,
+            "Could not determine starting symbol from given conditions.",
+        )
+
+
+class IgneaMultipleStartsError(IgneaSyntacticConditionsError):
+    """Multiple starting symbols from given conditions."""
+
+    def __init__(self, nonterminal_type: type[IgneaNonterminalType]) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            nonterminal_type:
+                Nonterminal type where the error happened.
+        """
+
+        super().__init__(
+            nonterminal_type,
+            "Multiple starting symbols from given conditions.",
+        )
+
+
+class IgneaSyntacticError(IgneaError):
     """Syntactic error processing an input file."""
 
     def __init__(self, position: IgneaPosition, description: str) -> None:
@@ -737,31 +794,7 @@ class IgneaSyntacticError(IgneaException):
             description: Description of the error.
         """
 
-        super().__init__(position, "Syntactic Error", description)
-
-
-class IgneaNoStartError(IgneaSyntacticError):
-    """Could not determine starting symbol from given conditions."""
-
-    def __init__(self) -> None:
-        """Initializes the error with the required information."""
-
-        super().__init__(
-            IgneaPosition("<conditions>", 0, 0, 0),
-            "Could not determine starting symbol from given conditions.",
-        )
-
-
-class IgneaMultipleStartsError(IgneaSyntacticError):
-    """Multiple starting symbols from given conditions."""
-
-    def __init__(self) -> None:
-        """Initializes the error with the required information."""
-
-        super().__init__(
-            IgneaPosition("<conditions>", 0, 0, 0),
-            "Multiple starting symbols from given conditions.",
-        )
+        super().__init__(position, "Syntactic", description)
 
 
 class IgneaNoDerivationError(IgneaSyntacticError):

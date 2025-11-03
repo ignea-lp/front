@@ -25,7 +25,8 @@ from .common import (
     IgneaConditions,
     IgneaMeta,
     IgneaPosition,
-    IgneaException,
+    IgneaError,
+    IgneaConditionsError,
 )
 
 __all__ = [
@@ -33,10 +34,11 @@ __all__ = [
     "IgneaTerminalTag",
     "IgneaTerminal",
     "IgneaLexer",
-    "IgneaLexicalError",
+    "IgneaLexicalConditionsError",
     "IgneaMissingOffsideError",
     "IgneaMultipleIndentsError",
     "IgneaMultipleDedentsError",
+    "IgneaLexicalError",
     "IgneaNoTerminalTagError",
     "IgneaIndentationError",
 ]
@@ -550,14 +552,14 @@ class IgneaLexer:
             if terminal_tag.start(self.conditions):
                 if terminal_tag.indent(self.conditions):
                     if terminal_tags_offside[0] is not None:
-                        raise IgneaMultipleIndentsError()
+                        raise IgneaMultipleIndentsError(terminal_tag)
 
                     terminal_tags_offside[0] = terminal_tag
                     continue
 
                 if terminal_tag.dedent(self.conditions):
                     if terminal_tags_offside[1] is not None:
-                        raise IgneaMultipleDedentsError()
+                        raise IgneaMultipleDedentsError(terminal_tag)
 
                     terminal_tags_offside[1] = terminal_tag
                     continue
@@ -587,7 +589,11 @@ class IgneaLexer:
         if (terminal_tags_offside[0] is None) != (
             terminal_tags_offside[1] is None
         ):
-            raise IgneaMissingOffsideError()
+            raise IgneaMissingOffsideError(
+                terminal_tags_offside[0]
+                if terminal_tags_offside[0] is not None
+                else terminal_tags_offside[1]
+            )
 
         if terminal_tags_offside[0] is not None:
             assert terminal_tags_offside[1] is not None
@@ -889,7 +895,75 @@ class IgneaLexer:
         positive_terminal_tags -= negative_terminal_tags
 
 
-class IgneaLexicalError(IgneaException):
+class IgneaLexicalConditionsError(IgneaConditionsError):
+    """Lexical error processing runtime conditions."""
+
+    def __init__(
+        self, terminal_tag: type[IgneaTerminalTag], description: str
+    ) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            terminal_tag: Terminal tag where the error happened.
+            description: Description of the error.
+        """
+
+        super().__init__(str(terminal_tag), "Lexical", description)
+
+
+class IgneaMissingOffsideError(IgneaLexicalConditionsError):
+    """Missing indenting/dedenting symbol processing runtime conditions."""
+
+    def __init__(self, terminal_tag: type[IgneaTerminalTag]) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            terminal_tag: Terminal tag where the error happened.
+        """
+
+        super().__init__(
+            terminal_tag,
+            "Missing indenting/dedenting symbol processing runtime conditions.",
+        )
+
+
+class IgneaMultipleIndentsError(IgneaLexicalConditionsError):
+    """Multiple indenting symbols processing runtime conditions."""
+
+    def __init__(self, terminal_tag: type[IgneaTerminalTag]) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            terminal_tag: Terminal tag where the error happened.
+        """
+
+        super().__init__(
+            terminal_tag,
+            "Multiple indenting symbols processing runtime conditions.",
+        )
+
+
+class IgneaMultipleDedentsError(IgneaLexicalConditionsError):
+    """Multiple dedenting symbols processing runtime conditions."""
+
+    def __init__(self, terminal_tag: type[IgneaTerminalTag]) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            terminal_tag: Terminal tag where the error happened.
+        """
+
+        super().__init__(
+            terminal_tag,
+            "Multiple dedenting symbols processing runtime conditions.",
+        )
+
+
+class IgneaLexicalError(IgneaError):
     """Lexical error processing an input file."""
 
     def __init__(self, position: IgneaPosition, description: str) -> None:
@@ -901,43 +975,7 @@ class IgneaLexicalError(IgneaException):
             description: Description of the error.
         """
 
-        super().__init__(position, "Lexical Error", description)
-
-
-class IgneaMissingOffsideError(IgneaLexicalError):
-    """Missing indenting/dedenting symbol from given conditions."""
-
-    def __init__(self) -> None:
-        """Initializes the error with the required information."""
-
-        super().__init__(
-            IgneaPosition("<conditions>", 0, 0, 0),
-            "Missing indenting/dedenting symbol from given conditions.",
-        )
-
-
-class IgneaMultipleIndentsError(IgneaLexicalError):
-    """Multiple indenting symbols from given conditions."""
-
-    def __init__(self) -> None:
-        """Initializes the error with the required information."""
-
-        super().__init__(
-            IgneaPosition("<conditions>", 0, 0, 0),
-            "Multiple indenting symbols from given conditions.",
-        )
-
-
-class IgneaMultipleDedentsError(IgneaLexicalError):
-    """Multiple dedenting symbols from given conditions."""
-
-    def __init__(self) -> None:
-        """Initializes the error with the required information."""
-
-        super().__init__(
-            IgneaPosition("<conditions>", 0, 0, 0),
-            "Multiple dedenting symbols from given conditions.",
-        )
+        super().__init__(position, "Lexical", description)
 
 
 class IgneaNoTerminalTagError(IgneaLexicalError):

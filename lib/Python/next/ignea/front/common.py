@@ -29,8 +29,11 @@ __all__ = [
     "IgneaPosition",
     "IgneaException",
     "IgneaExceptionHandler",
+    "IgneaError",
+    "IgneaConditionsError",
     "IgneaWarning",
     "ignea_init_warnings",
+    "IgneaConditionsWarning",
 ]
 IgneaConditions = IntFlag
 IgneaCondition = auto
@@ -43,6 +46,11 @@ class IgneaMeta(type):
         """Returns the representation of the class as its name."""
 
         return repr(cls.__name__)
+
+    def __str__(cls) -> str:
+        """Returns the string representation of the class as its name."""
+
+        return cls.__name__
 
 
 @dataclass(eq=False)
@@ -100,18 +108,23 @@ class IgneaException(Exception):
     """Generic exception processing an input file."""
 
     def __init__(
-        self, position: IgneaPosition, type_: str, description: str
+        self, where: IgneaPosition | str | None, type_: str, description: str
     ) -> None:
         """
         Initializes the exception with the required information.
 
         Args:
-            position: File and position where the exception happened.
+            where:
+                Where the exception happened, or None if it is not
+                location-specific.
             type_: Type of the exception.
             description: Description of the exception.
         """
 
-        super().__init__(f"{position}: {type_}: {description}")
+        if where is not None:
+            super().__init__(f"{where}: {type_}: {description}")
+        else:
+            super().__init__(f"{type_}: {description}")
 
 
 class IgneaExceptionHandler:
@@ -150,8 +163,64 @@ class IgneaExceptionHandler:
         return False
 
 
+class IgneaError(IgneaException):
+    """Generic error processing an input file."""
+
+    def __init__(
+        self, where: IgneaPosition | str | None, type_: str, description: str
+    ) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            where:
+                Where the error happened, or None if it is not
+                location-specific.
+            type_: Type of the error.
+            description: Description of the error.
+        """
+
+        super().__init__(where, f"{type_} Error", description)
+
+
+class IgneaConditionsError(IgneaError):
+    """Generic error processing runtime conditions."""
+
+    def __init__(
+        self, where: str | None, type_: str, description: str
+    ) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            where:
+                Where the error happened, or None if it is not
+                location-specific.
+            type_: Type of the error.
+            description: Description of the error.
+        """
+
+        super().__init__(where, f"{type_} Conditions", description)
+
+
 class IgneaWarning(IgneaException, Warning):
     """Generic warning processing an input file."""
+
+    def __init__(
+        self, where: IgneaPosition | str | None, type_: str, description: str
+    ) -> None:
+        """
+        Initializes the warning with the required information.
+
+        Args:
+            where:
+                Where the warning happened, or None if it is not
+                location-specific.
+            type_: Type of the warning.
+            description: Description of the warning.
+        """
+
+        super().__init__(where, f"{type_} Warning", description)
 
 
 def ignea_init_warnings() -> None:
@@ -190,3 +259,23 @@ def ignea_init_warnings() -> None:
 
     warnings.formatwarning = formatwarning
     warnings.filterwarnings("always", category=IgneaWarning)
+
+
+class IgneaConditionsWarning(IgneaWarning):
+    """Generic warning processing runtime conditions."""
+
+    def __init__(
+        self, where: str | None, type_: str, description: str
+    ) -> None:
+        """
+        Initializes the warning with the required information.
+
+        Args:
+            where:
+                Where the warning happened, or None if it is not
+                location-specific.
+            type_: Type of the warning.
+            description: Description of the warning.
+        """
+
+        super().__init__(where, f"{type_} Conditions", description)

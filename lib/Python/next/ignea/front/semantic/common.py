@@ -19,7 +19,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import ClassVar, TypeGuard
 
-from ..common import IgneaPosition, IgneaException, IgneaWarning
+from ..common import IgneaPosition, IgneaError, IgneaWarning
 from ..lexical import IgneaTerminalTag, IgneaTerminal
 from ..syntactic import (
     IgneaNonterminalType,
@@ -558,16 +558,16 @@ class IgneaTreeToBSRConverter(IgneaTreeVisitor):
         return False
 
 
-class IgneaSemanticError(IgneaException):
+class IgneaSemanticError(IgneaError):
     def __init__(self, position: IgneaPosition, description: str) -> None:
-        super().__init__(position, "Semantic Error", description)
-
-
-class IgneaSemanticWarning(IgneaWarning):
-    def __init__(self, position: IgneaPosition, description: str) -> None:
-        super().__init__(position, "Semantic Warning", description)
+        super().__init__(position, "Semantic", description)
 
 
 class IgneaAmbiguousGrammarError(IgneaSemanticError):
     def __init__(self, position: IgneaPosition) -> None:
         super().__init__(position, "Unexpected grammar ambiguity.")
+
+
+class IgneaSemanticWarning(IgneaWarning):
+    def __init__(self, position: IgneaPosition, description: str) -> None:
+        super().__init__(position, "Semantic", description)
