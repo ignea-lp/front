@@ -434,9 +434,10 @@ class IgneaParser:
 
         Raises:
             IgneaMultipleStartsError:
-                Multiple starting symbols from given conditions.
+                Multiple starting symbols processing runtime
+                conditions.
             IgneaNoStartError:
-                Could not determine starting symbol from given
+                Could not determine starting symbol processing runtime
                 conditions.
         """
 
@@ -753,19 +754,19 @@ class IgneaSyntacticConditionsError(IgneaConditionsError):
 
 
 class IgneaNoStartError(IgneaSyntacticConditionsError):
-    """Could not determine starting symbol from given conditions."""
+    """Could not determine starting symbol processing runtime conditions."""
 
     def __init__(self) -> None:
         """Initializes the error with the required information."""
 
         super().__init__(
             None,
-            "Could not determine starting symbol from given conditions.",
+            "Could not determine starting symbol processing runtime conditions.",
         )
 
 
 class IgneaMultipleStartsError(IgneaSyntacticConditionsError):
-    """Multiple starting symbols from given conditions."""
+    """Multiple starting symbols processing runtime conditions."""
 
     def __init__(self, nonterminal_type: type[IgneaNonterminalType]) -> None:
         """
@@ -778,7 +779,7 @@ class IgneaMultipleStartsError(IgneaSyntacticConditionsError):
 
         super().__init__(
             nonterminal_type,
-            "Multiple starting symbols from given conditions.",
+            "Multiple starting symbols processing runtime conditions.",
         )
 
 

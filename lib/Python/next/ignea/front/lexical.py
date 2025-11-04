@@ -534,11 +534,13 @@ class IgneaLexer:
 
         Raises:
             IgneaMultipleIndentsError:
-                Multiple indenting symbols from given conditions.
+                Multiple indenting symbols processing runtime
+                conditions.
             IgneaMultipleDedentsError:
-                Multiple dedenting symbols from given conditions.
+                Multiple dedenting symbols processing runtime
+                conditions.
             IgneaMissingOffsideError:
-                Missing indenting/dedenting symbol from given
+                Missing indenting/dedenting symbol processing runtime
                 conditions.
         """
 
