@@ -1029,6 +1029,8 @@ class IgneaNoTerminalTagError(IgneaLexicalError):
 
         Args:
             position: File and position where the error happened.
+            last_terminal_tags:
+                The terminal tags of the NFAs that got furthest.
         """
 
         if len(last_terminal_tags) > 0:
