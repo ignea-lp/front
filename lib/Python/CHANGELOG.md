@@ -1,3 +1,16 @@
+# Version 3.0.0
+
+- Remove deprecated APIs.
+- Improve lexical error diagnostics by providing closest match information whenever possible.
+- Add string representation to `IgneaMeta`.
+- Support generic location string besides `IgneaPosition` in `IgneaException`.
+- Support omiting location information in `IgneaException`.
+- Add `IgneaError` to group errors.
+- Add `IgneaConditionsError` and `IgneaConditionsWarning` to group runtime conditions errors and warnings.
+- Update exception classes to use new APIs.
+- Provide grammar symbol as location to conditions errors.
+- Raise `IgneaSpecifierNotExclusiveError` when other specifiers are provided with indent/dedent.
+
 # Version 2.1.0
 
 - Add support of off-side rule.

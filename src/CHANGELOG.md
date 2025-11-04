@@ -1,3 +1,7 @@
+# Version 3.1.1
+
+- Update lib to 3.0.0.
+
 # Version 3.1.0
 
 - Finish support of off-side rule.
