@@ -35,6 +35,7 @@ __all__ = [
     "IgneaTerminal",
     "IgneaLexer",
     "IgneaLexicalConditionsError",
+    "IgneaSpecifierNotExclusiveError",
     "IgneaMissingOffsideError",
     "IgneaMultipleIndentsError",
     "IgneaMultipleDedentsError",
@@ -533,6 +534,9 @@ class IgneaLexer:
         Initializes `start_position`, `_cache` and `_store.offside`.
 
         Raises:
+            IgneaSpecifierNotExclusiveError:
+                Indentation/dedentation specifier is not exclusive
+                processing runtime conditions.
             IgneaMultipleIndentsError:
                 Multiple indenting symbols processing runtime
                 conditions.
@@ -553,6 +557,14 @@ class IgneaLexer:
         for terminal_tag in self.TERMINAL_TAGS:
             if terminal_tag.start(self.conditions):
                 if terminal_tag.indent(self.conditions):
+                    if (
+                        terminal_tag.dedent(self.conditions)
+                        or terminal_tag.ignore(self.conditions)
+                        or len(terminal_tag.positives(self.conditions)) > 0
+                        or len(terminal_tag.negatives(self.conditions)) > 0
+                    ):
+                        raise IgneaSpecifierNotExclusiveError(terminal_tag)
+
                     if terminal_tags_offside[0] is not None:
                         raise IgneaMultipleIndentsError(terminal_tag)
 
@@ -560,6 +572,13 @@ class IgneaLexer:
                     continue
 
                 if terminal_tag.dedent(self.conditions):
+                    if (
+                        terminal_tag.ignore(self.conditions)
+                        or len(terminal_tag.positives(self.conditions)) > 0
+                        or len(terminal_tag.negatives(self.conditions)) > 0
+                    ):
+                        raise IgneaSpecifierNotExclusiveError(terminal_tag)
+
                     if terminal_tags_offside[1] is not None:
                         raise IgneaMultipleDedentsError(terminal_tag)
 
@@ -912,6 +931,23 @@ class IgneaLexicalConditionsError(IgneaConditionsError):
         """
 
         super().__init__(str(terminal_tag), "Lexical", description)
+
+
+class IgneaSpecifierNotExclusiveError(IgneaLexicalConditionsError):
+    """Indentation/dedentation specifier is not exclusive processing runtime conditions."""
+
+    def __init__(self, terminal_tag: type[IgneaTerminalTag]) -> None:
+        """
+        Initializes the error with the required information.
+
+        Args:
+            terminal_tag: Terminal tag where the error happened.
+        """
+
+        super().__init__(
+            terminal_tag,
+            "Indentation/dedentation specifier is not exclusive processing runtime conditions.",
+        )
 
 
 class IgneaMissingOffsideError(IgneaLexicalConditionsError):
