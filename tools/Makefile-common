@@ -17,7 +17,7 @@
 
 ROOT=$(CURRENT_PKG)/front/aether
 PYTHON_VERSION=3.12.3
-BLACK_VERSION=25.1.0
+BLACK_VERSION=26.1.0
 
 include $(ROOT)/__version__.py
 
