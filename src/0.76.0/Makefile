@@ -16,9 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 PREVIOUS_PKG=ignea
-PREVIOUS_SPEC_VERSION=0.4.0
-PREVIOUS_LIB_VERSION=0.5.0
-PREVIOUS_SRC_VERSION=0.80.0
+PREVIOUS_SPEC_VERSION=0.3.0
+PREVIOUS_LIB_VERSION=0.3.0
+PREVIOUS_SRC_VERSION=0.75.0
 CURRENT_PKG=ignea
 
 include ../../tools/Makefile-common

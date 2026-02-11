@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-PREVIOUS_PKG=ignea
-PREVIOUS_SPEC_VERSION=0.4.0
-PREVIOUS_LIB_VERSION=0.5.0
-PREVIOUS_SRC_VERSION=0.80.0
-CURRENT_PKG=ignea
+PREVIOUS_PKG=transmuter
+PREVIOUS_SPEC_VERSION=0.3.0
+PREVIOUS_LIB_VERSION=0.2.0
+PREVIOUS_SRC_VERSION=0.73.0
+CURRENT_PKG=transmuter
 
 include ../../tools/Makefile-common
