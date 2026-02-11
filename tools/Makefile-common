@@ -26,7 +26,7 @@ PREVIOUS_LIB=../lib/Python/$(PREVIOUS_LIB_VERSION)/
 CURRENT_SPEC=../spec/Aether/$(spec_version)/
 CURRENT_LIB=../lib/Python/$(lib_version)/
 
-.PHONY: generate init-licenses diff-licenses patch-licenses verify clean
+.PHONY: generate init-licenses diff-licenses patch-licenses clean
 
 generate: $(ROOT)/common.py $(ROOT)/lexical.py $(ROOT)/syntactic.py
 
@@ -57,9 +57,6 @@ diff-licenses: $(ROOT)/common.py $(ROOT)/lexical.py $(ROOT)/syntactic.py $(ROOT)
 
 patch-licenses:
 	cd $(ROOT)/ && patch -N -r - -p 0 < ../../../licenses.patch || [ $$? = 1 ]
-
-verify:
-	cd .. && ../tools/bootstrap/verify '$(PREVIOUS_PKG)' '$(PREVIOUS_SPEC)' '$(PREVIOUS_LIB)' '$(PREVIOUS_SRC_VERSION)/' '$(CURRENT_PKG)' $(CURRENT_SPEC) $(CURRENT_LIB) $(src_version)/ $(RELEASE_TYPE)
 
 clean:
 	rm -rf ../venv/

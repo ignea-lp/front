@@ -20,6 +20,5 @@ PREVIOUS_SPEC_VERSION=
 PREVIOUS_LIB_VERSION=
 PREVIOUS_SRC_VERSION=
 CURRENT_PKG=
-RELEASE_TYPE=
 
-include ../../tools/bootstrap/Makefile-common
+include ../../tools/Makefile-common

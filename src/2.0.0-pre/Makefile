@@ -20,6 +20,5 @@ PREVIOUS_SPEC_VERSION=1.0.0
 PREVIOUS_LIB_VERSION=1.1.0
 PREVIOUS_SRC_VERSION=1.0.2
 CURRENT_PKG=transmuter
-RELEASE_TYPE=11 1
 
-include ../../tools/bootstrap/Makefile-common
+include ../../tools/Makefile-common

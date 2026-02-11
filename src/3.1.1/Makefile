@@ -20,6 +20,5 @@ PREVIOUS_SPEC_VERSION=2.1.0
 PREVIOUS_LIB_VERSION=2.1.0
 PREVIOUS_SRC_VERSION=3.1.0
 CURRENT_PKG=ignea
-RELEASE_TYPE=3
 
-include ../../tools/bootstrap/Makefile-common
+include ../../tools/Makefile-common
