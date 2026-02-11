@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 PREVIOUS_PKG=transmuter
-PREVIOUS_SPEC_VERSION=2.0.0
+PREVIOUS_SPEC_VERSION=0.3.0
 PREVIOUS_LIB_VERSION=0.2.0
 PREVIOUS_SRC_VERSION=3.0.0-pre
 CURRENT_PKG=ignea
