@@ -1,4 +1,4 @@
-# Version 3.0.0
+# Version 0.5.0
 
 - Remove deprecated APIs.
 - Improve lexical error diagnostics by providing closest match information whenever possible.
@@ -11,17 +11,17 @@
 - Provide grammar symbol as location to conditions errors.
 - Raise `IgneaSpecifierNotExclusiveError` when other specifiers are provided with indent/dedent.
 
-# Version 2.1.0
+# Version 0.4.0
 
 - Add support of off-side rule.
 
-# Version 2.0.0
+# Version 0.3.0
 
 - Remove deprecated APIs.
 - Rename APIs to reflect project renaming.
 - Deprecate `TransmuterConditions`, `TransmuterCondition`, `TransmuterPosition`, `TransmuterException`, `TransmuterExceptionHandler`, `TransmuterWarning`, `transmuter_init_warnings`, `TransmuterLexingState`, `TransmuterTerminalTag`, `TransmuterTerminal`, `TransmuterLexer`, `TransmuterLexicalError`, `TransmuterNoTerminalTagError`, `transmuter_selection`, `transmuter_compute_sccs`, `TransmuterNonterminalType`, `TransmuterParsingState`, `TransmuterEPN`, `TransmuterBSR`, `TransmuterParser`, `TransmuterSyntacticError`, `TransmuterNoStartError`, `TransmuterMultipleStartsError`, `TransmuterNoDerivationError` and `TransmuterDerivationException`.
 
-# Version 1.1.0
+# Version 0.2.0
 
 - Add comments to code.
 - Improve variable names.
@@ -36,6 +36,6 @@
 - Define module public APIs.
 - Deprecate `TransmuterNoTerminalError`, `TransmuterParser.call` and `TransmuterInternalError`.
 
-# Version 1.0.0
+# Version 0.1.0
 
 Initial release.
