@@ -21,12 +21,7 @@ from typing import ClassVar, TypeGuard
 
 from ..common import IgneaPosition, IgneaException, IgneaWarning
 from ..lexical import IgneaTerminalTag, IgneaTerminal
-from ..syntactic import (
-    IgneaNonterminalType,
-    IgneaParsingState,
-    IgneaEPN,
-    IgneaBSR,
-)
+from ..syntactic import IgneaNonterminalType, IgneaParsingState, IgneaEPN, IgneaBSR
 
 
 @dataclass
@@ -111,9 +106,7 @@ class IgneaBSRVisitor:
     def top_before(self) -> None:
         pass
 
-    def descend(
-        self, epns: list[IgneaEPN], level_changed: bool
-    ) -> list[IgneaEPN]:
+    def descend(self, epns: list[IgneaEPN], level_changed: bool) -> list[IgneaEPN]:
         return epns
 
     def bottom(self) -> bool:
@@ -211,10 +204,7 @@ class IgneaBSRFold[T](IgneaBSRVisitor):
         return fold
 
     def fold_internal(
-        self,
-        epn: IgneaEPN,
-        left_children: list[T],
-        right_children: list[T],
+        self, epn: IgneaEPN, left_children: list[T], right_children: list[T]
     ) -> T | None:
         raise NotImplementedError()
 
@@ -241,9 +231,7 @@ class IgneaBSRToTreeConverter(IgneaBSRVisitor):
 
         if epns[0].type_ is not None:
             node = IgneaNonterminalTreeNode(
-                epns[0].type_,
-                epns[0].state.start_position,
-                epns[0].state.end_terminal,
+                epns[0].type_, epns[0].state.start_position, epns[0].state.end_terminal
             )
 
             if parent is not None:
@@ -267,10 +255,7 @@ class IgneaBSRToTreeConverter(IgneaBSRVisitor):
 
         if len(self.bsr.right_children(epns[0])) > 0:
             self._parents.append(parent)
-        elif (
-            epns[0].state.split_position
-            != epns[0].state.end_terminal.end_position
-        ):
+        elif epns[0].state.split_position != epns[0].state.end_terminal.end_position:
             assert issubclass(epns[0].state.string[-1], IgneaTerminalTag)
             parent.children.insert(
                 0,
@@ -311,9 +296,7 @@ class IgneaNonterminalTreeNode(IgneaTreeNode):
     children: list[IgneaTreeNode] = field(default_factory=list, init=False)
 
     def __repr__(self) -> str:
-        return repr(
-            (self.type_, self.start_position, self.end_terminal, self.children)
-        )
+        return repr((self.type_, self.start_position, self.end_terminal, self.children))
 
     def t(self, index: int) -> IgneaTerminalTreeNode:
         t = self.children[index]
@@ -394,9 +377,7 @@ class IgneaTreeVisitor:
     def top_before(self) -> None:
         pass
 
-    def descend(
-        self, node: IgneaTreeNode, level_changed: bool
-    ) -> IgneaTreeNode | None:
+    def descend(self, node: IgneaTreeNode, level_changed: bool) -> IgneaTreeNode | None:
         return node
 
     def bottom(self) -> bool:
@@ -430,9 +411,7 @@ class IgneaTreeTransformer(IgneaTreeVisitor):
 
 @dataclass
 class IgneaTreeFold[T](IgneaTreeVisitor):
-    _fold_queue: list[T | None] = field(
-        default_factory=list, init=False, repr=False
-    )
+    _fold_queue: list[T | None] = field(default_factory=list, init=False, repr=False)
 
     @staticmethod
     def _fold_filter(item: T | None) -> TypeGuard[T]:
@@ -447,9 +426,7 @@ class IgneaTreeFold[T](IgneaTreeVisitor):
     def ascend(self, node: IgneaTreeNode, _) -> None:
         if isinstance(node, IgneaNonterminalTreeNode):
             fold_children = list(
-                filter(
-                    self._fold_filter, self._fold_queue[-len(node.children) :]
-                )
+                filter(self._fold_filter, self._fold_queue[-len(node.children) :])
             )
             self._fold_queue = self._fold_queue[: -len(node.children)]
             fold = self.fold_internal(node, fold_children)

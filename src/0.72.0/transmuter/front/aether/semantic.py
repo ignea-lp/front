@@ -99,17 +99,13 @@ class LexicalBracketPattern:
 
 @dataclass(eq=False)
 class LexicalState:
-    pattern: (
-        LexicalSimplePattern | LexicalWildcardPattern | LexicalBracketPattern
-    )
+    pattern: LexicalSimplePattern | LexicalWildcardPattern | LexicalBracketPattern
     next_states: set["LexicalState"] | None = None
     state_accept: bool = field(default=False, init=False)
     next_states_indexes: list[int] = field(default_factory=list, init=False)
 
     def __repr__(self) -> str:
-        return repr(
-            (self.pattern, self.state_accept, self.next_states_indexes)
-        )
+        return repr((self.pattern, self.state_accept, self.next_states_indexes))
 
     def copy(self) -> "LexicalState":
         return LexicalState(self.pattern, self.next_states)
@@ -185,11 +181,7 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
 
     @staticmethod
     def fold_pattern(
-        pattern: (
-            LexicalSimplePattern
-            | LexicalWildcardPattern
-            | LexicalBracketPattern
-        ),
+        pattern: LexicalSimplePattern | LexicalWildcardPattern | LexicalBracketPattern,
     ) -> _LexicalFragment:
         state = LexicalState(pattern)
         return _LexicalFragment({state: None}, {state}, {state})
@@ -259,9 +251,7 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
         return child
 
     @classmethod
-    def fold_range(
-        cls, range_str: str, child: _LexicalFragment
-    ) -> _LexicalFragment:
+    def fold_range(cls, range_str: str, child: _LexicalFragment) -> _LexicalFragment:
         range_split = range_str[1:-1].split(",")
         range_ = [
             int(range_split[0]),
@@ -282,17 +272,14 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
                 range_[1] = None
 
         fragments = [
-            child.copy(child.bypass) if i > 0 else child
-            for i in range(range_[0])
+            child.copy(child.bypass) if i > 0 else child for i in range(range_[0])
         ]
 
         if range_[1] is not None:
             if range_[1] == -1:
                 fragments[-1].connect(fragments[-1])
             else:
-                fragments.extend(
-                    child.copy(True) for _ in range(range_[1] - range_[0])
-                )
+                fragments.extend(child.copy(True) for _ in range(range_[1] - range_[0]))
 
         return cls.fold_sequence(fragments)
 
@@ -302,9 +289,7 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
                 state.state_accept = True
 
     def fold_internal(
-        self,
-        node: TransmuterNonterminalTreeNode,
-        children: list[_LexicalFragment],
+        self, node: TransmuterNonterminalTreeNode, children: list[_LexicalFragment]
     ) -> _LexicalFragment | None:
         if len(children) == 0:
             return None
@@ -336,19 +321,13 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
             return None
 
         chars = node.end_terminal.value
-        pattern: (
-            LexicalSimplePattern
-            | LexicalWildcardPattern
-            | LexicalBracketPattern
-        )
+        pattern: LexicalSimplePattern | LexicalWildcardPattern | LexicalBracketPattern
 
         if node.type_ in (OrdChar, QuotedChar):
             if node.type_ == QuotedChar or len(chars) == 1:
                 pattern = LexicalSimplePattern(chars)
             else:
-                fragments = [
-                    self.fold_pattern(LexicalSimplePattern(c)) for c in chars
-                ]
+                fragments = [self.fold_pattern(LexicalSimplePattern(c)) for c in chars]
                 return self.fold_sequence(fragments)
         elif node.type_ == FullStop:
             pattern = LexicalWildcardPattern()
@@ -362,12 +341,8 @@ class _LexicalFold(TransmuterTreeFold[_LexicalFragment]):
 @dataclass
 class LexicalSymbol(TransmuterSymbol[TransmuterNonterminalTreeNode]):
     states_start: list[int] = field(default_factory=list, init=False)
-    start: TransmuterNonterminalTreeNode | None = field(
-        default=None, init=False
-    )
-    ignore: TransmuterNonterminalTreeNode | bool = field(
-        default=False, init=False
-    )
+    start: TransmuterNonterminalTreeNode | None = field(default=None, init=False)
+    ignore: TransmuterNonterminalTreeNode | bool = field(default=False, init=False)
     static_positives: list[str] = field(default_factory=list, init=False)
     conditional_positives: dict[str, TransmuterNonterminalTreeNode] = field(
         default_factory=dict, init=False
@@ -381,23 +356,15 @@ class LexicalSymbol(TransmuterSymbol[TransmuterNonterminalTreeNode]):
 
 @dataclass
 class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
-    condition_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = (
-        field(
-            default_factory=TransmuterSymbolTable[
-                TransmuterNonterminalTreeNode
-            ],
-            init=False,
-            repr=False,
-        )
+    condition_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = field(
+        default_factory=TransmuterSymbolTable[TransmuterNonterminalTreeNode],
+        init=False,
+        repr=False,
     )
-    terminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = (
-        field(
-            default_factory=TransmuterSymbolTable[
-                TransmuterNonterminalTreeNode
-            ],
-            init=False,
-            repr=False,
-        )
+    terminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = field(
+        default_factory=TransmuterSymbolTable[TransmuterNonterminalTreeNode],
+        init=False,
+        repr=False,
     )
 
     @staticmethod
@@ -447,9 +414,7 @@ class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
         self.condition_table.symbols.clear()
         self.terminal_table.symbols.clear()
 
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
+    def descend(self, node: TransmuterTreeNode, _) -> TransmuterTreeNode | None:
         if isinstance(node, TransmuterNonterminalTreeNode):
             if node.type_ == Production:
                 name = node.n(0).children[0].end_terminal.value
@@ -457,17 +422,16 @@ class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
 
                 if symbol.definition is not None:
                     raise TransmuterDuplicateSymbolDefinitionError(
-                        node.start_position,
-                        name,
-                        symbol.definition.start_position,
+                        node.start_position, name, symbol.definition.start_position
                     )
 
                 symbol.definition = node
             elif node.type_ == ProductionBody:
                 return None
-            elif node.type_ == ProductionSpecifier and node.children[
-                0
-            ].type_ in (PlusSign, HyphenMinus):
+            elif node.type_ == ProductionSpecifier and node.children[0].type_ in (
+                PlusSign,
+                HyphenMinus,
+            ):
                 symbol = self.terminal_table.add_get(
                     node.children[1].end_terminal.value, type_=LexicalSymbol
                 )
@@ -512,9 +476,7 @@ class LexicalSymbolTableBuilder(TransmuterTreeVisitor):
                 symbol.states.append(s)
                 states_indexes[s] = i
 
-            symbol.states_start = sorted(
-                states_indexes[s] for s in fragment.first
-            )
+            symbol.states_start = sorted(states_indexes[s] for s in fragment.first)
 
             for state in symbol.states:
                 if state.next_states is not None:
@@ -532,9 +494,7 @@ class _SyntacticFragment:
 
 class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
     def fold_internal(
-        self,
-        node: TransmuterNonterminalTreeNode,
-        children: list[_SyntacticFragment],
+        self, node: TransmuterNonterminalTreeNode, children: list[_SyntacticFragment]
     ) -> _SyntacticFragment | None:
         if len(children) == 0 or node.type_ in (
             Condition,
@@ -546,10 +506,7 @@ class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
             return None
 
         if len(children) == 1:
-            if (
-                node.type_ == PrimaryExpression
-                and node.children[-1].type_ == Condition
-            ):
+            if node.type_ == PrimaryExpression and node.children[-1].type_ == Condition:
                 for reference in children[0].references:
                     children[0].references[reference].insert(0, node.n(-1))
             elif node.type_ in (OptionalExpression, IterationExpression):
@@ -564,9 +521,7 @@ class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
             if children[0].bypass:
                 for i in range(1, len(children)):
                     children[0].references |= children[i].references
-                    children[0].bypass = (
-                        children[0].bypass and children[i].bypass
-                    )
+                    children[0].bypass = children[0].bypass and children[i].bypass
 
                     if not children[0].bypass:
                         break
@@ -584,23 +539,19 @@ class _SyntacticFold(TransmuterTreeFold[_SyntacticFragment]):
 
 @dataclass
 class SyntacticSymbol(TransmuterSymbol[TransmuterNonterminalTreeNode]):
-    start: TransmuterNonterminalTreeNode | bool = field(
-        default=False, init=False
+    start: TransmuterNonterminalTreeNode | bool = field(default=False, init=False)
+    static_first: list[TransmuterTerminal] = field(default_factory=list, init=False)
+    conditional_first: dict[TransmuterTerminal, list[TransmuterNonterminalTreeNode]] = (
+        field(default_factory=dict, init=False)
     )
-    static_first: list[TransmuterTerminal] = field(
-        default_factory=list, init=False
-    )
-    conditional_first: dict[
-        TransmuterTerminal, list[TransmuterNonterminalTreeNode]
-    ] = field(default_factory=dict, init=False)
 
 
 @dataclass
 class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
     condition_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode]
     terminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode]
-    nonterminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = (
-        field(init=False, repr=False)
+    nonterminal_table: TransmuterSymbolTable[TransmuterNonterminalTreeNode] = field(
+        init=False, repr=False
     )
 
     @staticmethod
@@ -640,34 +591,27 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
         return cls._instance
 
     def __post_init__(self) -> None:
-        self.nonterminal_table = TransmuterSymbolTable[
-            TransmuterNonterminalTreeNode
-        ](self.terminal_table)
+        self.nonterminal_table = TransmuterSymbolTable[TransmuterNonterminalTreeNode](
+            self.terminal_table
+        )
 
     def top_before(self) -> None:
         self.nonterminal_table.symbols.clear()
 
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
+    def descend(self, node: TransmuterTreeNode, _) -> TransmuterTreeNode | None:
         if isinstance(node, TransmuterNonterminalTreeNode):
             if node.type_ == Production:
                 name = node.n(0).children[0].end_terminal.value
-                symbol = self.nonterminal_table.add_get(
-                    name, type_=SyntacticSymbol
-                )
+                symbol = self.nonterminal_table.add_get(name, type_=SyntacticSymbol)
 
                 if symbol.definition is not None:
                     raise TransmuterDuplicateSymbolDefinitionError(
-                        node.start_position,
-                        name,
-                        symbol.definition.start_position,
+                        node.start_position, name, symbol.definition.start_position
                     )
 
                 symbol.definition = node
             elif (
-                node.type_ == PrimaryExpression
-                and node.children[0].type_ == Identifier
+                node.type_ == PrimaryExpression and node.children[0].type_ == Identifier
             ):
                 symbol = self.nonterminal_table.add_get(
                     node.children[0].end_terminal.value, type_=SyntacticSymbol
@@ -745,8 +689,8 @@ class SyntacticSymbolTableBuilder(TransmuterTreeVisitor):
             for reference in fragment.references:
                 if reference.value in self.nonterminal_table.symbols:
                     if len(fragment.references[reference]) > 0:
-                        symbol.conditional_first[reference] = (
-                            fragment.references[reference]
-                        )
+                        symbol.conditional_first[reference] = fragment.references[
+                            reference
+                        ]
                     else:
                         symbol.static_first.append(reference)

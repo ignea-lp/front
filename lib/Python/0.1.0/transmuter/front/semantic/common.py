@@ -211,10 +211,7 @@ class TransmuterBSRFold[T](TransmuterBSRVisitor):
         return fold
 
     def fold_internal(
-        self,
-        epn: TransmuterEPN,
-        left_children: list[T],
-        right_children: list[T],
+        self, epn: TransmuterEPN, left_children: list[T], right_children: list[T]
     ) -> T | None:
         raise NotImplementedError()
 
@@ -241,9 +238,7 @@ class TransmuterBSRToTreeConverter(TransmuterBSRVisitor):
 
         if epns[0].type_ is not None:
             node = TransmuterNonterminalTreeNode(
-                epns[0].type_,
-                epns[0].state.start_position,
-                epns[0].state.end_terminal,
+                epns[0].type_, epns[0].state.start_position, epns[0].state.end_terminal
             )
 
             if parent is not None:
@@ -267,10 +262,7 @@ class TransmuterBSRToTreeConverter(TransmuterBSRVisitor):
 
         if len(self.bsr.right_children(epns[0])) > 0:
             self._parents.append(parent)
-        elif (
-            epns[0].state.split_position
-            != epns[0].state.end_terminal.end_position
-        ):
+        elif epns[0].state.split_position != epns[0].state.end_terminal.end_position:
             assert issubclass(epns[0].state.string[-1], TransmuterTerminalTag)
             parent.children.insert(
                 0,
@@ -308,14 +300,10 @@ class TransmuterTerminalTreeNode(TransmuterTreeNode):
 @dataclass
 class TransmuterNonterminalTreeNode(TransmuterTreeNode):
     type_: type[TransmuterNonterminalType]
-    children: list[TransmuterTreeNode] = field(
-        default_factory=list, init=False
-    )
+    children: list[TransmuterTreeNode] = field(default_factory=list, init=False)
 
     def __repr__(self) -> str:
-        return repr(
-            (self.type_, self.start_position, self.end_terminal, self.children)
-        )
+        return repr((self.type_, self.start_position, self.end_terminal, self.children))
 
     def t(self, index: int) -> TransmuterTerminalTreeNode:
         t = self.children[index]
@@ -334,9 +322,7 @@ class TransmuterTreeVisitor:
     tree: TransmuterNonterminalTreeNode
 
     @classmethod
-    def get(
-        cls, tree: TransmuterNonterminalTreeNode
-    ) -> "TransmuterTreeVisitor":
+    def get(cls, tree: TransmuterNonterminalTreeNode) -> "TransmuterTreeVisitor":
         if cls._instance is None:
             cls._instance = cls(tree)
         else:
@@ -415,9 +401,7 @@ class TransmuterTreeVisitor:
 
 @dataclass
 class TransmuterTreeTransformer(TransmuterTreeVisitor):
-    new_tree: TransmuterNonterminalTreeNode | None = field(
-        init=False, repr=False
-    )
+    new_tree: TransmuterNonterminalTreeNode | None = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         self.new_tree = self.tree
@@ -436,9 +420,7 @@ class TransmuterTreeTransformer(TransmuterTreeVisitor):
 
 @dataclass
 class TransmuterTreeFold[T](TransmuterTreeVisitor):
-    _fold_queue: list[T | None] = field(
-        default_factory=list, init=False, repr=False
-    )
+    _fold_queue: list[T | None] = field(default_factory=list, init=False, repr=False)
 
     @staticmethod
     def _fold_filter(item: T | None) -> TypeGuard[T]:
@@ -453,9 +435,7 @@ class TransmuterTreeFold[T](TransmuterTreeVisitor):
     def ascend(self, node: TransmuterTreeNode, _) -> None:
         if isinstance(node, TransmuterNonterminalTreeNode):
             fold_children = list(
-                filter(
-                    self._fold_filter, self._fold_queue[-len(node.children) :]
-                )
+                filter(self._fold_filter, self._fold_queue[-len(node.children) :])
             )
             self._fold_queue = self._fold_queue[: -len(node.children)]
             fold = self.fold_internal(node, fold_children)
@@ -496,9 +476,7 @@ class TransmuterTreePositionFixer(TransmuterTreeVisitor):
 
 
 class TransmuterTreePositionUnfixer(TransmuterTreeVisitor):
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
+    def descend(self, node: TransmuterTreeNode, _) -> TransmuterTreeNode | None:
         if isinstance(node, TransmuterNonterminalTreeNode):
             node.children[0].start_position = node.start_position
 
@@ -529,9 +507,7 @@ class TransmuterTreeToBSRConverter(TransmuterTreeVisitor):
 
         TransmuterTreePositionUnfixer.get(self.tree).visit()
 
-    def descend(
-        self, node: TransmuterTreeNode, _
-    ) -> TransmuterTreeNode | None:
+    def descend(self, node: TransmuterTreeNode, _) -> TransmuterTreeNode | None:
         if isinstance(node, TransmuterNonterminalTreeNode):
             string = tuple(child.type_ for child in node.children)
             epn = TransmuterEPN(

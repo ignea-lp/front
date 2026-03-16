@@ -135,9 +135,7 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
         return False
 
     @staticmethod
-    def first(
-        conditions: IgneaConditions,
-    ) -> set[type["IgneaNonterminalType"]]:
+    def first(conditions: IgneaConditions) -> set[type["IgneaNonterminalType"]]:
         """
         Returns nonterminal types appearing first in the production rules.
 
@@ -153,11 +151,7 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
         return set()
 
     @classmethod
-    def ascend(
-        cls,
-        parser: "IgneaParser",
-        current_state: "IgneaParsingState",
-    ) -> None:
+    def ascend(cls, parser: "IgneaParser", current_state: "IgneaParsingState") -> None:
         """
         Recursively ascends the production rules to handle left-recursion.
 
@@ -185,9 +179,7 @@ class IgneaNonterminalType(metaclass=IgneaMeta):
 
     @classmethod
     def descend(
-        cls,
-        parser: "IgneaParser",
-        current_state: "IgneaParsingState",
+        cls, parser: "IgneaParser", current_state: "IgneaParsingState"
     ) -> set["IgneaParsingState"]:
         """
         Recursively descends the production rules.
@@ -238,12 +230,7 @@ class IgneaParsingState(NamedTuple):
         """Returns the representation of the parsing state as a tuple."""
 
         return repr(
-            (
-                self.string,
-                self.start_position,
-                self.split_position,
-                self.end_terminal,
-            )
+            (self.string, self.start_position, self.split_position, self.end_terminal)
         )
 
 
@@ -283,14 +270,9 @@ class IgneaBSR:
             starting and ending positions.
     """
 
-    start: (
-        tuple[
-            type[IgneaNonterminalType],
-            IgneaPosition,
-            IgneaPosition,
-        ]
-        | None
-    ) = field(default=None, init=False, repr=False)
+    start: tuple[type[IgneaNonterminalType], IgneaPosition, IgneaPosition] | None = (
+        field(default=None, init=False, repr=False)
+    )
     epns: dict[
         tuple[
             type[IgneaNonterminalType]
@@ -364,8 +346,7 @@ class IgneaBSR:
         )
 
         if (
-            parent.state.split_position
-            == parent.state.end_terminal.end_position
+            parent.state.split_position == parent.state.end_terminal.end_position
             or issubclass(parent.state.string[-1], IgneaTerminalTag)
             or key not in self.epns
         ):
@@ -413,16 +394,13 @@ class IgneaParser:
         type[IgneaNonterminalType], list[type[IgneaNonterminalType]]
     ] = field(init=False, repr=False)
     bsr: IgneaBSR = field(init=False, repr=False)
-    _nonterminal_type_start: type[IgneaNonterminalType] = field(
-        init=False, repr=False
-    )
+    _nonterminal_type_start: type[IgneaNonterminalType] = field(init=False, repr=False)
     _nonterminal_types_first: dict[
         type[IgneaNonterminalType], set[type[IgneaNonterminalType]]
     ] = field(init=False, repr=False)
     _eoi: IgneaTerminal | None = field(default=None, init=False, repr=False)
     _memo: dict[
-        tuple[type[IgneaNonterminalType], IgneaPosition],
-        set[IgneaTerminal],
+        tuple[type[IgneaNonterminalType], IgneaPosition], set[IgneaTerminal]
     ] = field(default_factory=dict, init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -475,9 +453,7 @@ class IgneaParser:
                     continue
 
             for v in scc:
-                self._nonterminal_types_first[v] = (
-                    scc & nonterminal_types_first[v]
-                )
+                self._nonterminal_types_first[v] = scc & nonterminal_types_first[v]
                 self.nonterminal_types_ascend_parents[v] = [
                     w for w in scc if v in nonterminal_types_first[w]
                 ]
@@ -499,10 +475,7 @@ class IgneaParser:
                 self._nonterminal_type_start,
                 {
                     IgneaParsingState(
-                        (),
-                        self.lexer.start_position,
-                        self.lexer.start_position,
-                        None,
+                        (), self.lexer.start_position, self.lexer.start_position, None
                     )
                 },
             )
@@ -562,9 +535,7 @@ class IgneaParser:
 
         if issubclass(cls, IgneaTerminalTag):
             for current_state in current_states:
-                next_state = self._derive_single_terminal_tag(
-                    cls, current_state
-                )
+                next_state = self._derive_single_terminal_tag(cls, current_state)
 
                 if next_state is not None:
                     next_states.add(next_state)
@@ -592,9 +563,7 @@ class IgneaParser:
         return next_states
 
     def _derive_single_terminal_tag(
-        self,
-        cls: type[IgneaTerminalTag],
-        current_state: IgneaParsingState,
+        self, cls: type[IgneaTerminalTag], current_state: IgneaParsingState
     ) -> IgneaParsingState | None:
         """
         Tries to derive terminal tag from single current state.
@@ -619,21 +588,16 @@ class IgneaParser:
         if next_terminal is not None and next_terminal != self._eoi:
             if (
                 self._eoi is None
-                or next_terminal.start_position.index_
-                > self._eoi.start_position.index_
+                or next_terminal.start_position.index_ > self._eoi.start_position.index_
             ):
                 self._eoi = next_terminal
-            elif (
-                next_terminal.start_position.index_
-                == self._eoi.start_position.index_
-            ):
+            elif next_terminal.start_position.index_ == self._eoi.start_position.index_:
                 eoi: IgneaTerminal | None = self._eoi
 
                 while (
                     eoi is not None
                     and next_terminal != eoi
-                    and next_terminal.start_position.index_
-                    == eoi.start_position.index_
+                    and next_terminal.start_position.index_ == eoi.start_position.index_
                 ):
                     eoi = eoi.next
 
@@ -732,9 +696,7 @@ class IgneaSyntacticConditionsError(IgneaConditionsError):
     """Syntactic error processing runtime conditions."""
 
     def __init__(
-        self,
-        nonterminal_type: type[IgneaNonterminalType] | None,
-        description: str,
+        self, nonterminal_type: type[IgneaNonterminalType] | None, description: str
     ) -> None:
         """
         Initializes the error with the required information.
@@ -760,8 +722,7 @@ class IgneaNoStartError(IgneaSyntacticConditionsError):
         """Initializes the error with the required information."""
 
         super().__init__(
-            None,
-            "Could not determine starting symbol processing runtime conditions.",
+            None, "Could not determine starting symbol processing runtime conditions."
         )
 
 
@@ -778,8 +739,7 @@ class IgneaMultipleStartsError(IgneaSyntacticConditionsError):
         """
 
         super().__init__(
-            nonterminal_type,
-            "Multiple starting symbols processing runtime conditions.",
+            nonterminal_type, "Multiple starting symbols processing runtime conditions."
         )
 
 
@@ -809,9 +769,7 @@ class IgneaNoDerivationError(IgneaSyntacticError):
             position: File and position where the error happened.
         """
 
-        super().__init__(
-            position, "Could not derive input from any production rule."
-        )
+        super().__init__(position, "Could not derive input from any production rule.")
 
 
 class IgneaDerivationException(Exception):

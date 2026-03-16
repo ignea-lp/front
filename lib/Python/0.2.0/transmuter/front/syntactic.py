@@ -93,9 +93,7 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
 
     @classmethod
     def ascend(
-        cls,
-        parser: "TransmuterParser",
-        current_state: "TransmuterParsingState",
+        cls, parser: "TransmuterParser", current_state: "TransmuterParsingState"
     ) -> None:
         """
         Recursively ascends the production rules to handle left-recursion.
@@ -123,9 +121,7 @@ class TransmuterNonterminalType(metaclass=TransmuterMeta):
 
     @classmethod
     def descend(
-        cls,
-        parser: "TransmuterParser",
-        current_state: "TransmuterParsingState",
+        cls, parser: "TransmuterParser", current_state: "TransmuterParsingState"
     ) -> set["TransmuterParsingState"]:
         """
         Recursively descends the production rules.
@@ -175,12 +171,7 @@ class TransmuterParsingState(NamedTuple):
         """Returns the representation of the parsing state as a tuple."""
 
         return repr(
-            (
-                self.string,
-                self.start_position,
-                self.split_position,
-                self.end_terminal,
-            )
+            (self.string, self.start_position, self.split_position, self.end_terminal)
         )
 
 
@@ -221,19 +212,13 @@ class TransmuterBSR:
     """
 
     start: (
-        tuple[
-            type[TransmuterNonterminalType],
-            TransmuterPosition,
-            TransmuterPosition,
-        ]
+        tuple[type[TransmuterNonterminalType], TransmuterPosition, TransmuterPosition]
         | None
     ) = field(default=None, init=False, repr=False)
     epns: dict[
         tuple[
             type[TransmuterNonterminalType]
-            | tuple[
-                type[TransmuterTerminalTag | TransmuterNonterminalType], ...
-            ],
+            | tuple[type[TransmuterTerminalTag | TransmuterNonterminalType], ...],
             TransmuterPosition,
             TransmuterPosition,
         ],
@@ -303,8 +288,7 @@ class TransmuterBSR:
         )
 
         if (
-            parent.state.split_position
-            == parent.state.end_terminal.end_position
+            parent.state.split_position == parent.state.end_terminal.end_position
             or issubclass(parent.state.string[-1], TransmuterTerminalTag)
             or key not in self.epns
         ):
@@ -358,9 +342,7 @@ class TransmuterParser:
     _nonterminal_types_first: dict[
         type[TransmuterNonterminalType], set[type[TransmuterNonterminalType]]
     ] = field(init=False, repr=False)
-    _eoi: TransmuterTerminal | None = field(
-        default=None, init=False, repr=False
-    )
+    _eoi: TransmuterTerminal | None = field(default=None, init=False, repr=False)
     _memo: dict[
         tuple[type[TransmuterNonterminalType], TransmuterPosition],
         set[TransmuterTerminal],
@@ -415,9 +397,7 @@ class TransmuterParser:
                     continue
 
             for v in scc:
-                self._nonterminal_types_first[v] = (
-                    scc & nonterminal_types_first[v]
-                )
+                self._nonterminal_types_first[v] = scc & nonterminal_types_first[v]
                 self.nonterminal_types_ascend_parents[v] = [
                     w for w in scc if v in nonterminal_types_first[w]
                 ]
@@ -438,10 +418,7 @@ class TransmuterParser:
                 self._nonterminal_type_start,
                 {
                     TransmuterParsingState(
-                        (),
-                        self.lexer.start_position,
-                        self.lexer.start_position,
-                        None,
+                        (), self.lexer.start_position, self.lexer.start_position, None
                     )
                 },
             )
@@ -500,9 +477,7 @@ class TransmuterParser:
 
         if issubclass(cls, TransmuterTerminalTag):
             for current_state in current_states:
-                next_state = self._derive_single_terminal_tag(
-                    cls, current_state
-                )
+                next_state = self._derive_single_terminal_tag(cls, current_state)
 
                 if next_state is not None:
                     next_states.add(next_state)
@@ -532,9 +507,7 @@ class TransmuterParser:
     call = derive
 
     def _derive_single_terminal_tag(
-        self,
-        cls: type[TransmuterTerminalTag],
-        current_state: TransmuterParsingState,
+        self, cls: type[TransmuterTerminalTag], current_state: TransmuterParsingState
     ) -> TransmuterParsingState | None:
         """
         Tries to derive terminal tag from single current state.
@@ -557,8 +530,7 @@ class TransmuterParser:
 
         if next_terminal is not None and (
             self._eoi is None
-            or self._eoi.start_position.index_
-            < next_terminal.start_position.index_
+            or self._eoi.start_position.index_ < next_terminal.start_position.index_
         ):
             self._eoi = next_terminal
 
@@ -699,9 +671,7 @@ class TransmuterNoDerivationError(TransmuterSyntacticError):
             position: File and position where the error happened.
         """
 
-        super().__init__(
-            position, "Could not derive input from any production rule."
-        )
+        super().__init__(position, "Could not derive input from any production rule.")
 
 
 class TransmuterDerivationException(Exception):

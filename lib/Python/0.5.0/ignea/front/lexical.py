@@ -133,9 +133,7 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         return False
 
     @staticmethod
-    def positives(
-        conditions: IgneaConditions,
-    ) -> set[type["IgneaTerminalTag"]]:
+    def positives(conditions: IgneaConditions) -> set[type["IgneaTerminalTag"]]:
         """
         Returns terminal tags that must be added to terminal symbol.
 
@@ -156,9 +154,7 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         return set()
 
     @staticmethod
-    def negatives(
-        conditions: IgneaConditions,
-    ) -> set[type["IgneaTerminalTag"]]:
+    def negatives(conditions: IgneaConditions) -> set[type["IgneaTerminalTag"]]:
         """
         Returns terminal tags that must be removed from terminal symbol.
 
@@ -231,9 +227,7 @@ class IgneaTerminal:
     def __repr__(self) -> str:
         """Returns the representation of the terminal symbol as a tuple."""
 
-        return repr(
-            (self.tags, self.value, self.start_position, self.end_position)
-        )
+        return repr((self.tags, self.value, self.start_position, self.end_position))
 
 
 @dataclass
@@ -287,8 +281,7 @@ class _IgneaLexerCache:
         type[IgneaTerminalTag], set[type[IgneaTerminalTag]]
     ] = field(default_factory=dict, init=False, repr=False)
     accepted_terminal_tags: dict[
-        frozenset[type[IgneaTerminalTag]],
-        set[type[IgneaTerminalTag]],
+        frozenset[type[IgneaTerminalTag]], set[type[IgneaTerminalTag]]
     ] = field(default_factory=dict, init=False, repr=False)
     nfas: dict[
         tuple[type[IgneaTerminalTag], IgneaLexingState, str],
@@ -549,10 +542,7 @@ class IgneaLexer:
         """
 
         self.start_position = IgneaPosition(self.filename, 0, 1, 1)
-        terminal_tags_offside: list[type[IgneaTerminalTag] | None] = [
-            None,
-            None,
-        ]
+        terminal_tags_offside: list[type[IgneaTerminalTag] | None] = [None, None]
 
         for terminal_tag in self.TERMINAL_TAGS:
             if terminal_tag.start(self.conditions):
@@ -585,9 +575,7 @@ class IgneaLexer:
                     terminal_tags_offside[1] = terminal_tag
                     continue
 
-                self._cache.states_start[terminal_tag] = (
-                    terminal_tag.STATES_START
-                )
+                self._cache.states_start[terminal_tag] = terminal_tag.STATES_START
 
                 if terminal_tag.ignore(self.conditions):
                     self._cache.terminal_tags_ignore.add(terminal_tag)
@@ -607,9 +595,7 @@ class IgneaLexer:
                     and not tag.dedent(self.conditions)
                 }
 
-        if (terminal_tags_offside[0] is None) != (
-            terminal_tags_offside[1] is None
-        ):
+        if (terminal_tags_offside[0] is None) != (terminal_tags_offside[1] is None):
             raise IgneaMissingOffsideError(
                 terminal_tags_offside[0]
                 if terminal_tags_offside[0] is not None
@@ -660,15 +646,11 @@ class IgneaLexer:
             return self._start
 
         if current_terminal.next is None:
-            current_terminal.next = self._get_terminal(
-                current_terminal.end_position
-            )
+            current_terminal.next = self._get_terminal(current_terminal.end_position)
 
         return current_terminal.next
 
-    def _get_terminal(
-        self, start_position: IgneaPosition
-    ) -> IgneaTerminal | None:
+    def _get_terminal(self, start_position: IgneaPosition) -> IgneaTerminal | None:
         """
         Generates terminal symbol after the provided position.
 
@@ -684,9 +666,7 @@ class IgneaLexer:
         """
 
         if start_position.index_ == len(self.input):
-            return self._store.offside.prepend_offside_terminals(
-                start_position
-            )
+            return self._store.offside.prepend_offside_terminals(start_position)
 
         start_position = start_position.copy()
         self._store.current_position.update(start_position)
@@ -724,8 +704,7 @@ class IgneaLexer:
                     # over the same characters, due to the
                     # backtracking of the longest match principle
                     for index_ in range(
-                        accepted_position.index_,
-                        self._store.current_position.index_,
+                        accepted_position.index_, self._store.current_position.index_
                     ):
                         if self._store.offside.nfa(self.input[index_]):
                             # Whether the first non-whitespace
@@ -753,52 +732,39 @@ class IgneaLexer:
                 self._store.next_states.clear()
 
             if len(accepted_terminal_tags) == 0:
-                raise IgneaNoTerminalTagError(
-                    start_position, last_terminal_tags
-                )
+                raise IgneaNoTerminalTagError(start_position, last_terminal_tags)
 
             initial_accepted_terminal_tags = frozenset(accepted_terminal_tags)
 
-            if (
-                initial_accepted_terminal_tags
-                not in self._cache.accepted_terminal_tags
-            ):
+            if initial_accepted_terminal_tags not in self._cache.accepted_terminal_tags:
                 self._process_positives_negatives(accepted_terminal_tags)
                 accepted_terminal_tags -= self._cache.terminal_tags_ignore
-                self._cache.accepted_terminal_tags[
-                    initial_accepted_terminal_tags
-                ] = accepted_terminal_tags.copy()
+                self._cache.accepted_terminal_tags[initial_accepted_terminal_tags] = (
+                    accepted_terminal_tags.copy()
+                )
             else:
                 accepted_terminal_tags.clear()
                 accepted_terminal_tags.update(
-                    self._cache.accepted_terminal_tags[
-                        initial_accepted_terminal_tags
-                    ]
+                    self._cache.accepted_terminal_tags[initial_accepted_terminal_tags]
                 )
 
             if len(accepted_terminal_tags) > 0:
                 next_terminal: IgneaTerminal | None = IgneaTerminal(
                     accepted_terminal_tags,
-                    self.input[
-                        start_position.index_ : accepted_position.index_
-                    ],
+                    self.input[start_position.index_ : accepted_position.index_],
                     start_position,
                     accepted_position,
                 )
 
                 if is_offside:
-                    next_terminal = (
-                        self._store.offside.prepend_offside_terminals(
-                            start_position, next_terminal
-                        )
+                    next_terminal = self._store.offside.prepend_offside_terminals(
+                        start_position, next_terminal
                     )
 
                 return next_terminal
 
             if self._store.current_position.index_ == len(self.input):
-                return self._store.offside.prepend_offside_terminals(
-                    start_position
-                )
+                return self._store.offside.prepend_offside_terminals(start_position)
 
             # Skip ignored terminal symbol and restart
             start_position.update(accepted_position)
@@ -851,15 +817,13 @@ class IgneaLexer:
         """
 
         self._store.current_positive_terminal_tags.clear()
-        self._store.current_positive_terminal_tags.update(
-            positive_terminal_tags
-        )
+        self._store.current_positive_terminal_tags.update(positive_terminal_tags)
 
         while True:
             for terminal_tag in self._store.current_positive_terminal_tags:
-                self._store.next_terminal_tags |= (
-                    self._cache.terminal_tags_positives[terminal_tag]
-                )
+                self._store.next_terminal_tags |= self._cache.terminal_tags_positives[
+                    terminal_tag
+                ]
 
             self._store.next_terminal_tags -= positive_terminal_tags
 
@@ -882,20 +846,16 @@ class IgneaLexer:
         negative_terminal_tags.clear()
 
         for terminal_tag in positive_terminal_tags:
-            negative_terminal_tags |= self._cache.terminal_tags_negatives[
-                terminal_tag
-            ]
+            negative_terminal_tags |= self._cache.terminal_tags_negatives[terminal_tag]
 
         self._store.current_negative_terminal_tags.clear()
-        self._store.current_negative_terminal_tags.update(
-            negative_terminal_tags
-        )
+        self._store.current_negative_terminal_tags.update(negative_terminal_tags)
 
         while True:
             for terminal_tag in self._store.current_negative_terminal_tags:
-                self._store.next_terminal_tags |= (
-                    self._cache.terminal_tags_negatives[terminal_tag]
-                )
+                self._store.next_terminal_tags |= self._cache.terminal_tags_negatives[
+                    terminal_tag
+                ]
 
             self._store.next_terminal_tags -= negative_terminal_tags
 
@@ -919,9 +879,7 @@ class IgneaLexer:
 class IgneaLexicalConditionsError(IgneaConditionsError):
     """Lexical error processing runtime conditions."""
 
-    def __init__(
-        self, terminal_tag: type[IgneaTerminalTag], description: str
-    ) -> None:
+    def __init__(self, terminal_tag: type[IgneaTerminalTag], description: str) -> None:
         """
         Initializes the error with the required information.
 
@@ -979,8 +937,7 @@ class IgneaMultipleIndentsError(IgneaLexicalConditionsError):
         """
 
         super().__init__(
-            terminal_tag,
-            "Multiple indenting symbols processing runtime conditions.",
+            terminal_tag, "Multiple indenting symbols processing runtime conditions."
         )
 
 
@@ -996,8 +953,7 @@ class IgneaMultipleDedentsError(IgneaLexicalConditionsError):
         """
 
         super().__init__(
-            terminal_tag,
-            "Multiple dedenting symbols processing runtime conditions.",
+            terminal_tag, "Multiple dedenting symbols processing runtime conditions."
         )
 
 
@@ -1020,9 +976,7 @@ class IgneaNoTerminalTagError(IgneaLexicalError):
     """Could not derive any terminal tag processing an input file."""
 
     def __init__(
-        self,
-        position: IgneaPosition,
-        last_terminal_tags: list[type[IgneaTerminalTag]],
+        self, position: IgneaPosition, last_terminal_tags: list[type[IgneaTerminalTag]]
     ) -> None:
         """
         Initializes the error with the required information.

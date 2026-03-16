@@ -51,9 +51,7 @@ class IgneaSymbolTable[T]:
         table: IgneaSymbolTable[T] | None = self
 
         if name not in self.symbols and (
-            shadow
-            or self.parent is None
-            or (table := self.parent.table(name)) is None
+            shadow or self.parent is None or (table := self.parent.table(name)) is None
         ):
             symbol = type_()
             self.symbols[name] = symbol
@@ -74,10 +72,7 @@ class IgneaSymbolTable[T]:
 
 class IgneaDuplicateSymbolDefinitionError(IgneaSemanticError):
     def __init__(
-        self,
-        position: IgneaPosition,
-        name: str,
-        first_position: IgneaPosition,
+        self, position: IgneaPosition, name: str, first_position: IgneaPosition
     ) -> None:
         super().__init__(
             position,
@@ -87,10 +82,7 @@ class IgneaDuplicateSymbolDefinitionError(IgneaSemanticError):
 
 class IgneaUndefinedSymbolError(IgneaSemanticError):
     def __init__(
-        self,
-        position: IgneaPosition,
-        name: str,
-        first_position: IgneaPosition,
+        self, position: IgneaPosition, name: str, first_position: IgneaPosition
     ) -> None:
         super().__init__(
             position,

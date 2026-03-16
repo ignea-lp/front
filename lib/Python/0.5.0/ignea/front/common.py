@@ -86,9 +86,7 @@ class IgneaPosition:
     def copy(self) -> "IgneaPosition":
         """Returns a copy of this position."""
 
-        return IgneaPosition(
-            self.filename, self.index_, self.line, self.column
-        )
+        return IgneaPosition(self.filename, self.index_, self.line, self.column)
 
     def update(self, position: "IgneaPosition") -> None:
         """
@@ -136,10 +134,7 @@ class IgneaExceptionHandler:
         return self
 
     def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        _,
+        self, exc_type: type[BaseException] | None, exc_value: BaseException | None, _
     ) -> bool:
         """
         Prints `IgneaException` objects to stderr.
@@ -186,9 +181,7 @@ class IgneaError(IgneaException):
 class IgneaConditionsError(IgneaError):
     """Generic error processing runtime conditions."""
 
-    def __init__(
-        self, where: str | None, type_: str, description: str
-    ) -> None:
+    def __init__(self, where: str | None, type_: str, description: str) -> None:
         """
         Initializes the error with the required information.
 
@@ -253,9 +246,7 @@ def ignea_init_warnings() -> None:
         if issubclass(category, IgneaWarning):
             return f"{str(message)}\n"
 
-        return original_formatwarning(
-            message, category, filename, lineno, line
-        )
+        return original_formatwarning(message, category, filename, lineno, line)
 
     warnings.formatwarning = formatwarning
     warnings.filterwarnings("always", category=IgneaWarning)
@@ -264,9 +255,7 @@ def ignea_init_warnings() -> None:
 class IgneaConditionsWarning(IgneaWarning):
     """Generic warning processing runtime conditions."""
 
-    def __init__(
-        self, where: str | None, type_: str, description: str
-    ) -> None:
+    def __init__(self, where: str | None, type_: str, description: str) -> None:
         """
         Initializes the warning with the required information.
 

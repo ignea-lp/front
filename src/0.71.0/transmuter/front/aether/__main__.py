@@ -19,10 +19,7 @@ from argparse import ArgumentParser
 from os import path
 
 from ..common import TransmuterExceptionHandler
-from ..semantic.common import (
-    TransmuterBSRDisambiguator,
-    TransmuterBSRToTreeConverter,
-)
+from ..semantic.common import TransmuterBSRDisambiguator, TransmuterBSRToTreeConverter
 from . import __version__
 from .common import Conditions
 from .lexical import Lexer
@@ -69,9 +66,7 @@ def main():
 
     with TransmuterExceptionHandler():
         lexical_lexer = Lexer(
-            path.join(args.input, "lexical.aether"),
-            lexical_input,
-            Conditions.lexical,
+            path.join(args.input, "lexical.aether"), lexical_input, Conditions.lexical
         )
         syntactic_lexer = Lexer(
             path.join(args.input, "syntactic.aether"),
@@ -113,9 +108,7 @@ def main():
                 lexical_table_builder.terminal_table, ConditionFold
             )
             syntactic_fold = SyntacticFileFold(
-                syntactic_table_builder.nonterminal_table,
-                ConditionFold,
-                ExpressionFold,
+                syntactic_table_builder.nonterminal_table, ConditionFold, ExpressionFold
             )
             common_output = common_fold.fold()
             lexical_output = lexical_fold.fold()
@@ -127,16 +120,12 @@ def main():
                 common_file.write(common_output)
 
             with open(
-                path.join(args.output, "lexical.py"),
-                mode="w",
-                encoding="UTF-8",
+                path.join(args.output, "lexical.py"), mode="w", encoding="UTF-8"
             ) as lexical_file:
                 lexical_file.write(lexical_output)
 
             with open(
-                path.join(args.output, "syntactic.py"),
-                mode="w",
-                encoding="UTF-8",
+                path.join(args.output, "syntactic.py"), mode="w", encoding="UTF-8"
             ) as syntactic_file:
                 syntactic_file.write(syntactic_output)
 

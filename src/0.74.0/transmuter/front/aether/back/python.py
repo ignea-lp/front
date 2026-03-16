@@ -134,17 +134,13 @@ class ConditionFold(AetherConditionFold):
     ) -> str:
         return " and ".join(children)
 
-    def fold_negation(
-        self, node: TransmuterNonterminalTreeNode, child: str
-    ) -> str:
+    def fold_negation(self, node: TransmuterNonterminalTreeNode, child: str) -> str:
         if len(node.n(-1).children) == 1:
             return child.replace(" in ", " not in ", 1)
 
         return f"not {child}"
 
-    def fold_primary(
-        self, node: TransmuterNonterminalTreeNode, child: str
-    ) -> str:
+    def fold_primary(self, node: TransmuterNonterminalTreeNode, child: str) -> str:
         if len(node.children) == 1:
             return f"Conditions.{_escape_identifier(child)} in conditions"
 
@@ -152,9 +148,7 @@ class ConditionFold(AetherConditionFold):
 
 
 class LexicalFileFold(AetherLexicalFileFold):
-    def fold_file(
-        self, terminal_tag_names: list[str], terminal_tags: list[str]
-    ) -> str:
+    def fold_file(self, terminal_tag_names: list[str], terminal_tags: list[str]) -> str:
         return f"{GENERATED_MESSAGE}from ignea.front.lexical import IgneaTerminalTag, IgneaLexer\nfrom .common import Conditions\n\n\n{'\n\n\n'.join(terminal_tags)}\n\n\nclass Lexer(IgneaLexer):\n    TERMINAL_TAGS = [{', '.join(_escape_identifier(t) for t in terminal_tag_names)}]"
 
     def fold_terminal_tag(
@@ -167,9 +161,7 @@ class LexicalFileFold(AetherLexicalFileFold):
         negatives: str | None,
         nfa: str,
     ) -> str:
-        terminal_tag = (
-            f"class {_escape_identifier(name)}(IgneaTerminalTag):\n"
-        )
+        terminal_tag = f"class {_escape_identifier(name)}(IgneaTerminalTag):\n"
 
         if states_start is not None:
             terminal_tag += f"    {states_start}\n\n"
@@ -201,12 +193,12 @@ class LexicalFileFold(AetherLexicalFileFold):
     def fold_positives(
         self, static_positives: str, conditional_positives: list[str]
     ) -> str:
-        positives = f"@staticmethod\ndef positives(conditions):\n    {static_positives}\n"
+        positives = (
+            f"@staticmethod\ndef positives(conditions):\n    {static_positives}\n"
+        )
 
         if len(conditional_positives) > 0:
-            positives += (
-                f"\n{self.indent('\n\n'.join(conditional_positives))}\n\n"
-            )
+            positives += f"\n{self.indent('\n\n'.join(conditional_positives))}\n\n"
 
         positives += "    return positives"
         return positives
@@ -214,12 +206,12 @@ class LexicalFileFold(AetherLexicalFileFold):
     def fold_negatives(
         self, static_negatives: str, conditional_negatives: list[str]
     ) -> str:
-        negatives = f"@staticmethod\ndef negatives(conditions):\n    {static_negatives}\n"
+        negatives = (
+            f"@staticmethod\ndef negatives(conditions):\n    {static_negatives}\n"
+        )
 
         if len(conditional_negatives) > 0:
-            negatives += (
-                f"\n{self.indent('\n\n'.join(conditional_negatives))}\n\n"
-            )
+            negatives += f"\n{self.indent('\n\n'.join(conditional_negatives))}\n\n"
 
         negatives += "    return negatives"
         return negatives
@@ -234,9 +226,7 @@ class LexicalFileFold(AetherLexicalFileFold):
         return f"positives = {{{', '.join(_escape_identifier(p) for p in value)}}}"
 
     def fold_conditional_positive(self, value: str, condition: str) -> str:
-        return (
-            f"if {condition}:\n    positives.add({_escape_identifier(value)})"
-        )
+        return f"if {condition}:\n    positives.add({_escape_identifier(value)})"
 
     def fold_static_negatives(self, value: list[str]) -> str:
         if len(value) == 0:
@@ -245,9 +235,7 @@ class LexicalFileFold(AetherLexicalFileFold):
         return f"negatives = {{{', '.join(_escape_identifier(p) for p in value)}}}"
 
     def fold_conditional_negative(self, value: str, condition: str) -> str:
-        return (
-            f"if {condition}:\n    negatives.add({_escape_identifier(value)})"
-        )
+        return f"if {condition}:\n    negatives.add({_escape_identifier(value)})"
 
     def fold_state(self, index: int, value: LexicalState) -> str:
         state = f"if 1 << {index} & current_states{' and ' if not isinstance(value.pattern, LexicalWildcardPattern) else ''}"
@@ -273,9 +261,7 @@ class LexicalFileFold(AetherLexicalFileFold):
                         while j < len(value.pattern.patterns) and isinstance(
                             value.pattern.patterns[j], LexicalSimplePattern
                         ):
-                            patterns[-1] += _escape_char(
-                                value.pattern.patterns[j].char
-                            )
+                            patterns[-1] += _escape_char(value.pattern.patterns[j].char)
                             j += 1
 
                         patterns[-1] += '"'
@@ -301,9 +287,7 @@ class LexicalFileFold(AetherLexicalFileFold):
 
                 if value.pattern.negative_match:
                     if patterns[0].startswith("char in"):
-                        state += patterns[0].replace(
-                            "char in", "char not in", 1
-                        )
+                        state += patterns[0].replace("char in", "char not in", 1)
                     elif patterns[0].startswith("char =="):
                         state += patterns[0].replace("char ==", "char !=", 1)
                     else:
@@ -324,10 +308,7 @@ class LexicalFileFold(AetherLexicalFileFold):
 
 class ExpressionFold(AetherExpressionFold):
     def fold_selection(
-        self,
-        node: TransmuterNonterminalTreeNode,
-        children: list[str],
-        ordered: bool,
+        self, node: TransmuterNonterminalTreeNode, children: list[str], ordered: bool
     ) -> str:
         if ordered:
             selection = "\nfor _ in ignea_selection:  # begin selection"
@@ -344,18 +325,16 @@ class ExpressionFold(AetherExpressionFold):
                 _, condition, option = option.split("\n", 2)
                 option_start = f"\n{condition}\n    next_states.append(next_states[-2])  # begin option\n\n    try:\n"
             else:
-                option_start = "\ntry:  # begin option\n    next_states.append(next_states[-2])\n"
+                option_start = (
+                    "\ntry:  # begin option\n    next_states.append(next_states[-2])\n"
+                )
 
             if ordered:
-                selection += AetherFileFold.indent(option_start).replace(
-                    "-2", "-1"
-                )
+                selection += AetherFileFold.indent(option_start).replace("-2", "-1")
             else:
                 selection += option_start
 
-            selection += AetherFileFold.indent(
-                option, 2 if ordered else 1
-            ).rstrip("\n")
+            selection += AetherFileFold.indent(option, 2 if ordered else 1).rstrip("\n")
 
             if ordered:
                 option_end = "\n    except IgneaDerivationException:\n        next_states.pop()\n    else:\n        break  # end option\n"
@@ -368,9 +347,7 @@ class ExpressionFold(AetherExpressionFold):
                 selection += option_end
 
         if not ordered:
-            selection += (
-                "\nif len(next_states[-1]) == 0:\n    next_states.pop()"
-            )
+            selection += "\nif len(next_states[-1]) == 0:\n    next_states.pop()"
 
         selection += "\n    raise IgneaDerivationException()\n\nnext_states[-1] = next_states.pop()  # end selection"
         return selection
@@ -417,9 +394,7 @@ class SyntacticFileFold(AetherSyntacticFileFold):
     def fold_nonterminal_type(
         self, name: str, start: str | None, first: str | None, descend: str
     ) -> str:
-        nonterminal_type = (
-            f"class {_escape_identifier(name)}(IgneaNonterminalType):\n"
-        )
+        nonterminal_type = f"class {_escape_identifier(name)}(IgneaNonterminalType):\n"
 
         if start is not None:
             nonterminal_type += f"{self.indent(start)}\n\n"
@@ -433,9 +408,7 @@ class SyntacticFileFold(AetherSyntacticFileFold):
     def fold_start(self, value: str | None) -> str:
         return f"@staticmethod\ndef start(conditions):\n    return {value if value is not None else 'True'}"
 
-    def fold_first(
-        self, static_first: str, conditional_first: list[str]
-    ) -> str:
+    def fold_first(self, static_first: str, conditional_first: list[str]) -> str:
         first = f"@staticmethod\ndef first(conditions):\n    {static_first}\n"
 
         if len(conditional_first) > 0:
@@ -455,8 +428,6 @@ class SyntacticFileFold(AetherSyntacticFileFold):
 
     def fold_conditional_first(self, value: str, conditions: list[str]) -> str:
         condition = (
-            f"({') and ('.join(conditions)})"
-            if len(conditions) > 1
-            else conditions[0]
+            f"({') and ('.join(conditions)})" if len(conditions) > 1 else conditions[0]
         )
         return f"if {condition}:\n    first.add({_escape_identifier(value)})"

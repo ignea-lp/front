@@ -51,9 +51,7 @@ class TransmuterSymbolTable[T]:
         table: TransmuterSymbolTable[T] | None = self
 
         if name not in self.symbols and (
-            shadow
-            or self.parent is None
-            or (table := self.parent.table(name)) is None
+            shadow or self.parent is None or (table := self.parent.table(name)) is None
         ):
             symbol = type_()
             self.symbols[name] = symbol

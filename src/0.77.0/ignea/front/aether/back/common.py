@@ -174,18 +174,14 @@ class AetherLexicalFileFold(AetherFileFold):
                 len(symbol.static_positives) > 0
                 or len(symbol.conditional_positives) > 0
             ):
-                static_positives = self.fold_static_positives(
-                    symbol.static_positives
-                )
+                static_positives = self.fold_static_positives(symbol.static_positives)
                 conditional_positives = [
                     self.fold_conditional_positive(
                         p, self.fold_condition(symbol.conditional_positives[p])
                     )
                     for p in symbol.conditional_positives
                 ]
-                positives = self.fold_positives(
-                    static_positives, conditional_positives
-                )
+                positives = self.fold_positives(static_positives, conditional_positives)
             else:
                 positives = None
 
@@ -193,35 +189,24 @@ class AetherLexicalFileFold(AetherFileFold):
                 len(symbol.static_negatives) > 0
                 or len(symbol.conditional_negatives) > 0
             ):
-                static_negatives = self.fold_static_negatives(
-                    symbol.static_negatives
-                )
+                static_negatives = self.fold_static_negatives(symbol.static_negatives)
                 conditional_negatives = [
                     self.fold_conditional_negative(
                         n, self.fold_condition(symbol.conditional_negatives[n])
                     )
                     for n in symbol.conditional_negatives
                 ]
-                negatives = self.fold_negatives(
-                    static_negatives, conditional_negatives
-                )
+                negatives = self.fold_negatives(static_negatives, conditional_negatives)
             else:
                 negatives = None
 
             states = [
-                self.fold_state(i, symbol.states[i])
-                for i in range(len(symbol.states))
+                self.fold_state(i, symbol.states[i]) for i in range(len(symbol.states))
             ]
             nfa = self.fold_nfa(states)
             terminal_tags.append(
                 self.fold_terminal_tag(
-                    name,
-                    states_start,
-                    start,
-                    ignore,
-                    positives,
-                    negatives,
-                    nfa,
+                    name, states_start, start, ignore, positives, negatives, nfa
                 )
             )
 
@@ -232,9 +217,7 @@ class AetherLexicalFileFold(AetherFileFold):
         assert isinstance(condition_fold, AetherConditionFold)
         return condition_fold.fold_s()
 
-    def fold_file(
-        self, terminal_tag_names: list[str], terminal_tags: list[str]
-    ) -> str:
+    def fold_file(self, terminal_tag_names: list[str], terminal_tags: list[str]) -> str:
         raise NotImplementedError()
 
     def fold_terminal_tag(
@@ -354,9 +337,7 @@ class AetherExpressionFold(IgneaTreeFold[str]):
 
             if node.type_ == IterationExpression:
                 return self.fold_iteration(
-                    node,
-                    children[0],
-                    node.children[0].type_ == LeftCurlyBracketSolidus,
+                    node, children[0], node.children[0].type_ == LeftCurlyBracketSolidus
                 )
 
             return children[0]
@@ -396,16 +377,11 @@ class AetherExpressionFold(IgneaTreeFold[str]):
         return node.end_terminal.value
 
     def fold_selection(
-        self,
-        node: IgneaNonterminalTreeNode,
-        children: list[str],
-        ordered: bool,
+        self, node: IgneaNonterminalTreeNode, children: list[str], ordered: bool
     ) -> str:
         raise NotImplementedError()
 
-    def fold_sequence(
-        self, node: IgneaNonterminalTreeNode, children: list[str]
-    ) -> str:
+    def fold_sequence(self, node: IgneaNonterminalTreeNode, children: list[str]) -> str:
         raise NotImplementedError()
 
     def fold_iteration(
@@ -450,20 +426,14 @@ class AetherSyntacticFileFold(AetherFileFold):
                 else None
             )
 
-            if (
-                len(symbol.static_first) > 0
-                or len(symbol.conditional_first) > 0
-            ):
+            if len(symbol.static_first) > 0 or len(symbol.conditional_first) > 0:
                 static_first = self.fold_static_first(
                     [f.value for f in symbol.static_first]
                 )
                 conditional_first = [
                     self.fold_conditional_first(
                         f.value,
-                        [
-                            self.fold_condition(c)
-                            for c in symbol.conditional_first[f]
-                        ],
+                        [self.fold_condition(c) for c in symbol.conditional_first[f]],
                     )
                     for f in symbol.conditional_first
                 ]
@@ -490,9 +460,7 @@ class AetherSyntacticFileFold(AetherFileFold):
         return condition_fold.fold_s()
 
     def fold_expression(
-        self,
-        value: IgneaNonterminalTreeNode,
-        first_references: set[IgneaTerminal],
+        self, value: IgneaNonterminalTreeNode, first_references: set[IgneaTerminal]
     ) -> str:
         expression_fold = self.expression_fold_type.get(
             value, self.condition_fold_type, first_references
@@ -513,9 +481,7 @@ class AetherSyntacticFileFold(AetherFileFold):
     def fold_start(self, value: str | None) -> str:
         raise NotImplementedError()
 
-    def fold_first(
-        self, static_first: str, conditional_first: list[str]
-    ) -> str:
+    def fold_first(self, static_first: str, conditional_first: list[str]) -> str:
         raise NotImplementedError()
 
     def fold_descend(self, value: str) -> str:

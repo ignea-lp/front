@@ -87,9 +87,7 @@ class IgneaPosition:
     def copy(self) -> "IgneaPosition":
         """Returns a copy of this position."""
 
-        return IgneaPosition(
-            self.filename, self.index_, self.line, self.column
-        )
+        return IgneaPosition(self.filename, self.index_, self.line, self.column)
 
     def update(self, position: "IgneaPosition") -> None:
         """
@@ -111,9 +109,7 @@ TransmuterPosition = IgneaPosition
 class IgneaException(Exception):
     """Generic exception processing an input file."""
 
-    def __init__(
-        self, position: IgneaPosition, type_: str, description: str
-    ) -> None:
+    def __init__(self, position: IgneaPosition, type_: str, description: str) -> None:
         """
         Initializes the exception with the required information.
 
@@ -138,10 +134,7 @@ class IgneaExceptionHandler:
         return self
 
     def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        _,
+        self, exc_type: type[BaseException] | None, exc_value: BaseException | None, _
     ) -> bool:
         """
         Prints `IgneaException` objects to stderr.
@@ -205,9 +198,7 @@ def ignea_init_warnings() -> None:
         if issubclass(category, IgneaWarning):
             return f"{str(message)}\n"
 
-        return original_formatwarning(
-            message, category, filename, lineno, line
-        )
+        return original_formatwarning(message, category, filename, lineno, line)
 
     warnings.formatwarning = formatwarning
     warnings.filterwarnings("always", category=IgneaWarning)

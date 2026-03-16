@@ -6,7 +6,7 @@ All common, lexical and syntactic code in the library must follow this code styl
 
 ### Formatting
 
-Code must be formatted using `black -l 79`.
+Code must be formatted using `black`.
 
 ### Linting
 

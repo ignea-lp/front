@@ -21,12 +21,7 @@
 from dataclasses import dataclass, field
 from typing import ClassVar
 
-from .common import (
-    IgneaConditions,
-    IgneaMeta,
-    IgneaPosition,
-    IgneaException,
-)
+from .common import IgneaConditions, IgneaMeta, IgneaPosition, IgneaException
 
 __all__ = [
     "IgneaLexingState",
@@ -97,9 +92,7 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         return False
 
     @staticmethod
-    def positives(
-        conditions: IgneaConditions,
-    ) -> set[type["IgneaTerminalTag"]]:
+    def positives(conditions: IgneaConditions) -> set[type["IgneaTerminalTag"]]:
         """
         Returns terminal tags that must be added to terminal symbol.
 
@@ -120,9 +113,7 @@ class IgneaTerminalTag(metaclass=IgneaMeta):
         return set()
 
     @staticmethod
-    def negatives(
-        conditions: IgneaConditions,
-    ) -> set[type["IgneaTerminalTag"]]:
+    def negatives(conditions: IgneaConditions) -> set[type["IgneaTerminalTag"]]:
         """
         Returns terminal tags that must be removed from terminal symbol.
 
@@ -198,9 +189,7 @@ class IgneaTerminal:
     def __repr__(self) -> str:
         """Returns the representation of the terminal symbol as a tuple."""
 
-        return repr(
-            (self.tags, self.value, self.start_position, self.end_position)
-        )
+        return repr((self.tags, self.value, self.start_position, self.end_position))
 
 
 TransmuterTerminal = IgneaTerminal
@@ -248,8 +237,7 @@ class _IgneaLexerCache:
         type[IgneaTerminalTag], set[type[IgneaTerminalTag]]
     ] = field(default_factory=dict, init=False, repr=False)
     accepted_terminal_tags: dict[
-        frozenset[type[IgneaTerminalTag]],
-        set[type[IgneaTerminalTag]],
+        frozenset[type[IgneaTerminalTag]], set[type[IgneaTerminalTag]]
     ] = field(default_factory=dict, init=False, repr=False)
     nfas: dict[
         tuple[type[IgneaTerminalTag], IgneaLexingState, str],
@@ -352,9 +340,7 @@ class IgneaLexer:
 
         for terminal_tag in self.TERMINAL_TAGS:
             if terminal_tag.start(self.conditions):
-                self._cache.states_start[terminal_tag] = (
-                    terminal_tag.STATES_START
-                )
+                self._cache.states_start[terminal_tag] = terminal_tag.STATES_START
 
                 if terminal_tag.ignore(self.conditions):
                     self._cache.terminal_tags_ignore.add(terminal_tag)
@@ -404,15 +390,11 @@ class IgneaLexer:
             return self._start
 
         if current_terminal.next is None:
-            current_terminal.next = self._get_terminal(
-                current_terminal.end_position
-            )
+            current_terminal.next = self._get_terminal(current_terminal.end_position)
 
         return current_terminal.next
 
-    def _get_terminal(
-        self, start_position: IgneaPosition
-    ) -> IgneaTerminal | None:
+    def _get_terminal(self, start_position: IgneaPosition) -> IgneaTerminal | None:
         """
         Generates terminal symbol after the provided position.
 
@@ -471,29 +453,22 @@ class IgneaLexer:
 
             initial_accepted_terminal_tags = frozenset(accepted_terminal_tags)
 
-            if (
-                initial_accepted_terminal_tags
-                not in self._cache.accepted_terminal_tags
-            ):
+            if initial_accepted_terminal_tags not in self._cache.accepted_terminal_tags:
                 self._process_positives_negatives(accepted_terminal_tags)
                 accepted_terminal_tags -= self._cache.terminal_tags_ignore
-                self._cache.accepted_terminal_tags[
-                    initial_accepted_terminal_tags
-                ] = accepted_terminal_tags.copy()
+                self._cache.accepted_terminal_tags[initial_accepted_terminal_tags] = (
+                    accepted_terminal_tags.copy()
+                )
             else:
                 accepted_terminal_tags.clear()
                 accepted_terminal_tags.update(
-                    self._cache.accepted_terminal_tags[
-                        initial_accepted_terminal_tags
-                    ]
+                    self._cache.accepted_terminal_tags[initial_accepted_terminal_tags]
                 )
 
             if len(accepted_terminal_tags) > 0:
                 return IgneaTerminal(
                     accepted_terminal_tags,
-                    self.input[
-                        start_position.index_ : accepted_position.index_
-                    ],
+                    self.input[start_position.index_ : accepted_position.index_],
                     start_position,
                     accepted_position,
                 )
@@ -550,15 +525,13 @@ class IgneaLexer:
         """
 
         self._store.current_positive_terminal_tags.clear()
-        self._store.current_positive_terminal_tags.update(
-            positive_terminal_tags
-        )
+        self._store.current_positive_terminal_tags.update(positive_terminal_tags)
 
         while True:
             for terminal_tag in self._store.current_positive_terminal_tags:
-                self._store.next_terminal_tags |= (
-                    self._cache.terminal_tags_positives[terminal_tag]
-                )
+                self._store.next_terminal_tags |= self._cache.terminal_tags_positives[
+                    terminal_tag
+                ]
 
             self._store.next_terminal_tags -= positive_terminal_tags
 
@@ -581,20 +554,16 @@ class IgneaLexer:
         negative_terminal_tags.clear()
 
         for terminal_tag in positive_terminal_tags:
-            negative_terminal_tags |= self._cache.terminal_tags_negatives[
-                terminal_tag
-            ]
+            negative_terminal_tags |= self._cache.terminal_tags_negatives[terminal_tag]
 
         self._store.current_negative_terminal_tags.clear()
-        self._store.current_negative_terminal_tags.update(
-            negative_terminal_tags
-        )
+        self._store.current_negative_terminal_tags.update(negative_terminal_tags)
 
         while True:
             for terminal_tag in self._store.current_negative_terminal_tags:
-                self._store.next_terminal_tags |= (
-                    self._cache.terminal_tags_negatives[terminal_tag]
-                )
+                self._store.next_terminal_tags |= self._cache.terminal_tags_negatives[
+                    terminal_tag
+                ]
 
             self._store.next_terminal_tags -= negative_terminal_tags
 

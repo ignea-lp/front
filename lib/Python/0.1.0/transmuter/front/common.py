@@ -82,9 +82,7 @@ class TransmuterPosition:
         return f"{self.filename}:{self.line}:{self.column}"
 
     def copy(self) -> "TransmuterPosition":
-        return TransmuterPosition(
-            self.filename, self.index_, self.line, self.column
-        )
+        return TransmuterPosition(self.filename, self.index_, self.line, self.column)
 
     def update(self, position: "TransmuterPosition") -> None:
         self.filename = position.filename
@@ -105,10 +103,7 @@ class TransmuterExceptionHandler:
         return self
 
     def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        _,
+        self, exc_type: type[BaseException] | None, exc_value: BaseException | None, _
     ) -> bool:
         if exc_type is not None and issubclass(exc_type, TransmuterException):
             print(exc_value, file=sys.stderr)
@@ -134,9 +129,7 @@ def transmuter_init_warnings() -> None:
         if issubclass(category, TransmuterWarning):
             return f"{str(message)}\n"
 
-        return original_formatwarning(
-            message, category, filename, lineno, line
-        )
+        return original_formatwarning(message, category, filename, lineno, line)
 
     warnings.formatwarning = formatwarning
     warnings.filterwarnings("always", category=TransmuterWarning)
