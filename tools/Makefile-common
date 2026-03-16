@@ -26,8 +26,6 @@ include $(ROOT)/__version__.py
 
 PREVIOUS_SPEC=../spec/Aether/$(PREVIOUS_SPEC_VERSION)/
 PREVIOUS_LIB=../lib/Python/$(PREVIOUS_LIB_VERSION)/
-CURRENT_SPEC=../spec/Aether/$(spec_version)/
-CURRENT_LIB=../lib/Python/$(lib_version)/
 
 .PHONY: generate init-licenses diff-licenses patch-licenses clean
 
