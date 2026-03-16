@@ -36,7 +36,7 @@ generate: $(ROOT)/common.py $(ROOT)/lexical.py $(ROOT)/syntactic.py
 $(ROOT)/common.py $(ROOT)/lexical.py $(ROOT)/syntactic.py: ../$(PREVIOUS_SPEC) ../$(PREVIOUS_LIB) ../$(PREVIOUS_SRC_VERSION)/ ../venv/
 	[ "$$(python3 --version)" = 'Python $(PYTHON_VERSION)' ]
 	cd .. && PYTHONPATH='$(PREVIOUS_LIB)':'$(PREVIOUS_SRC_VERSION)/' python3 -m $(PREVIOUS_PKG).front.aether -L python -o $(src_version)/$(ROOT)/ '$(PREVIOUS_SPEC)'
-	. ../venv/bin/activate && cd $(ROOT)/ && black -l 79 common.py lexical.py syntactic.py
+	. ../venv/bin/activate && cd $(ROOT)/ && black common.py lexical.py syntactic.py
 
 ../venv/:
 	[ "$$(python3 --version)" = 'Python $(PYTHON_VERSION)' ]

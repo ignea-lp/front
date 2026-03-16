@@ -78,9 +78,7 @@ class ProductionHeader(IgneaNonterminalType):
 
         try:  # begin optional
             next_states.append(next_states[-1])
-            next_states[-1] = parser.derive(
-                ProductionSpecifiers, next_states[-1]
-            )
+            next_states[-1] = parser.derive(ProductionSpecifiers, next_states[-1])
         except IgneaDerivationException:
             next_states.pop()
         else:
@@ -113,9 +111,7 @@ class ProductionSpecifiers(IgneaNonterminalType):
     def descend(cls, parser, current_state):
         next_states = [{current_state}]
         next_states[-1] = parser.derive(LeftParenthesis, next_states[-1])
-        next_states[-1] = parser.derive(
-            ProductionSpecifierList, next_states[-1]
-        )
+        next_states[-1] = parser.derive(ProductionSpecifierList, next_states[-1])
         next_states[-1] = parser.derive(RightParenthesis, next_states[-1])
         return next_states[0]
 
@@ -132,9 +128,7 @@ class SelectionExpression(IgneaNonterminalType):
                 for _ in ignea_selection:  # begin selection
                     try:  # begin option
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.derive(
-                            VerticalLine, next_states[-1]
-                        )
+                        next_states[-1] = parser.derive(VerticalLine, next_states[-1])
                     except IgneaDerivationException:
                         next_states.pop()
                     else:
@@ -144,9 +138,7 @@ class SelectionExpression(IgneaNonterminalType):
                         next_states.append(next_states[-1])  # begin option
 
                         try:
-                            next_states[-1] = parser.derive(
-                                Solidus, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(Solidus, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -155,9 +147,7 @@ class SelectionExpression(IgneaNonterminalType):
                     raise IgneaDerivationException()
 
                 next_states[-1] = next_states.pop()  # end selection
-                next_states[-1] = parser.derive(
-                    SequenceExpression, next_states[-1]
-                )
+                next_states[-1] = parser.derive(SequenceExpression, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
                 break
@@ -176,12 +166,8 @@ class DisjunctionCondition(IgneaNonterminalType):
 
         while True:
             try:
-                next_states[-1] = parser.derive(
-                    DoubleVerticalLine, next_states[-1]
-                )
-                next_states[-1] = parser.derive(
-                    ConjunctionCondition, next_states[-1]
-                )
+                next_states[-1] = parser.derive(DoubleVerticalLine, next_states[-1])
+                next_states[-1] = parser.derive(ConjunctionCondition, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
                 break
@@ -201,9 +187,7 @@ class ProductionSpecifierList(IgneaNonterminalType):
         while True:
             try:
                 next_states[-1] = parser.derive(Comma, next_states[-1])
-                next_states[-1] = parser.derive(
-                    ProductionSpecifier, next_states[-1]
-                )
+                next_states[-1] = parser.derive(ProductionSpecifier, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
                 break
@@ -247,9 +231,7 @@ class SequenceExpression(IgneaNonterminalType):
                 next_states.append(next_states[-1])  # begin option
 
                 try:
-                    next_states[-1] = parser.derive(
-                        PrimaryExpression, next_states[-1]
-                    )
+                    next_states[-1] = parser.derive(PrimaryExpression, next_states[-1])
                     next_states.append(next_states[-1])  # begin iteration
 
                     while True:
@@ -282,12 +264,8 @@ class ConjunctionCondition(IgneaNonterminalType):
 
         while True:
             try:
-                next_states[-1] = parser.derive(
-                    DoubleAmpersand, next_states[-1]
-                )
-                next_states[-1] = parser.derive(
-                    NegationCondition, next_states[-1]
-                )
+                next_states[-1] = parser.derive(DoubleAmpersand, next_states[-1])
+                next_states[-1] = parser.derive(NegationCondition, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
                 break
@@ -334,12 +312,8 @@ class ProductionSpecifier(IgneaNonterminalType):
 
                                 raise IgneaDerivationException()
 
-                            next_states[-1] = (
-                                next_states.pop()
-                            )  # end selection
-                            next_states[-1] = parser.derive(
-                                Identifier, next_states[-1]
-                            )
+                            next_states[-1] = next_states.pop()  # end selection
+                            next_states[-1] = parser.derive(Identifier, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -347,9 +321,7 @@ class ProductionSpecifier(IgneaNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.derive(
-                                Ignore, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(Ignore, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -357,9 +329,7 @@ class ProductionSpecifier(IgneaNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.derive(
-                                Indent, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(Indent, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -367,9 +337,7 @@ class ProductionSpecifier(IgneaNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.derive(
-                                Dedent, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(Dedent, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -518,9 +486,7 @@ class IterationExpression(IgneaNonterminalType):
                     next_states[-1] = parser.derive(
                         SelectionExpression, next_states[-1]
                     )
-                    next_states[-1] = parser.derive(
-                        RightCurlyBracket, next_states[-1]
-                    )
+                    next_states[-1] = parser.derive(RightCurlyBracket, next_states[-1])
                 except IgneaDerivationException:
                     next_states.pop()
                 else:
@@ -554,9 +520,7 @@ class PrimaryExpression(IgneaNonterminalType):
                     for _ in ignea_selection:  # begin selection
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.derive(
-                                OrdChar, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(OrdChar, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -564,9 +528,7 @@ class PrimaryExpression(IgneaNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.derive(
-                                QuotedChar, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(QuotedChar, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -574,9 +536,7 @@ class PrimaryExpression(IgneaNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.derive(
-                                FullStop, next_states[-1]
-                            )
+                            next_states[-1] = parser.derive(FullStop, next_states[-1])
                         except IgneaDerivationException:
                             next_states.pop()
                         else:
@@ -604,15 +564,11 @@ class PrimaryExpression(IgneaNonterminalType):
                 next_states.append(next_states[-1])  # begin option
 
                 try:
-                    next_states[-1] = parser.derive(
-                        Identifier, next_states[-1]
-                    )
+                    next_states[-1] = parser.derive(Identifier, next_states[-1])
 
                     try:  # begin optional
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.derive(
-                            Condition, next_states[-1]
-                        )
+                        next_states[-1] = parser.derive(Condition, next_states[-1])
                     except IgneaDerivationException:
                         next_states.pop()
                     else:
@@ -624,22 +580,14 @@ class PrimaryExpression(IgneaNonterminalType):
 
             try:  # begin option
                 next_states.append(next_states[-1])
-                next_states[-1] = parser.derive(
-                    LeftParenthesis, next_states[-1]
-                )
-                next_states[-1] = parser.derive(
-                    SelectionExpression, next_states[-1]
-                )
-                next_states[-1] = parser.derive(
-                    RightParenthesis, next_states[-1]
-                )
+                next_states[-1] = parser.derive(LeftParenthesis, next_states[-1])
+                next_states[-1] = parser.derive(SelectionExpression, next_states[-1])
+                next_states[-1] = parser.derive(RightParenthesis, next_states[-1])
 
                 if Conditions.syntactic in parser.lexer.conditions:
                     try:  # begin optional
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.derive(
-                            Condition, next_states[-1]
-                        )
+                        next_states[-1] = parser.derive(Condition, next_states[-1])
                     except IgneaDerivationException:
                         next_states.pop()
                     else:
@@ -680,9 +628,7 @@ class PrimaryExpression(IgneaNonterminalType):
 
                     try:  # begin optional
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.derive(
-                            Condition, next_states[-1]
-                        )
+                        next_states[-1] = parser.derive(Condition, next_states[-1])
                     except IgneaDerivationException:
                         next_states.pop()
                     else:
@@ -706,9 +652,7 @@ class NegationCondition(IgneaNonterminalType):
 
         while True:
             try:
-                next_states[-1] = parser.derive(
-                    ExclamationMark, next_states[-1]
-                )
+                next_states[-1] = parser.derive(ExclamationMark, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
                 break
@@ -727,9 +671,7 @@ class OptionalExpression(IgneaNonterminalType):
         for _ in ignea_selection:  # begin selection
             try:  # begin option
                 next_states.append(next_states[-1])
-                next_states[-1] = parser.derive(
-                    LeftSquareBracket, next_states[-1]
-                )
+                next_states[-1] = parser.derive(LeftSquareBracket, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
             else:
@@ -769,15 +711,9 @@ class PrimaryCondition(IgneaNonterminalType):
 
             try:  # begin option
                 next_states.append(next_states[-1])
-                next_states[-1] = parser.derive(
-                    LeftParenthesis, next_states[-1]
-                )
-                next_states[-1] = parser.derive(
-                    DisjunctionCondition, next_states[-1]
-                )
-                next_states[-1] = parser.derive(
-                    RightParenthesis, next_states[-1]
-                )
+                next_states[-1] = parser.derive(LeftParenthesis, next_states[-1])
+                next_states[-1] = parser.derive(DisjunctionCondition, next_states[-1])
+                next_states[-1] = parser.derive(RightParenthesis, next_states[-1])
             except IgneaDerivationException:
                 next_states.pop()
             else:

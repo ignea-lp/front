@@ -78,9 +78,7 @@ class ProductionHeader(TransmuterNonterminalType):
 
         try:  # begin optional
             next_states.append(next_states[-1])
-            next_states[-1] = parser.call(
-                ProductionSpecifiers, next_states[-1]
-            )
+            next_states[-1] = parser.call(ProductionSpecifiers, next_states[-1])
         except TransmuterInternalError:
             next_states.pop()
         else:
@@ -130,9 +128,7 @@ class SelectionExpression(TransmuterNonterminalType):
                 for _ in transmuter_selection:  # begin selection
                     try:  # begin option
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.call(
-                            VerticalLine, next_states[-1]
-                        )
+                        next_states[-1] = parser.call(VerticalLine, next_states[-1])
                     except TransmuterInternalError:
                         next_states.pop()
                     else:
@@ -142,9 +138,7 @@ class SelectionExpression(TransmuterNonterminalType):
                         next_states.append(next_states[-1])  # begin option
 
                         try:
-                            next_states[-1] = parser.call(
-                                Solidus, next_states[-1]
-                            )
+                            next_states[-1] = parser.call(Solidus, next_states[-1])
                         except TransmuterInternalError:
                             next_states.pop()
                         else:
@@ -153,9 +147,7 @@ class SelectionExpression(TransmuterNonterminalType):
                     raise TransmuterInternalError()
 
                 next_states[-1] = next_states.pop()  # end selection
-                next_states[-1] = parser.call(
-                    SequenceExpression, next_states[-1]
-                )
+                next_states[-1] = parser.call(SequenceExpression, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
                 break
@@ -174,12 +166,8 @@ class DisjunctionCondition(TransmuterNonterminalType):
 
         while True:
             try:
-                next_states[-1] = parser.call(
-                    DoubleVerticalLine, next_states[-1]
-                )
-                next_states[-1] = parser.call(
-                    ConjunctionCondition, next_states[-1]
-                )
+                next_states[-1] = parser.call(DoubleVerticalLine, next_states[-1])
+                next_states[-1] = parser.call(ConjunctionCondition, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
                 break
@@ -199,9 +187,7 @@ class ProductionSpecifierList(TransmuterNonterminalType):
         while True:
             try:
                 next_states[-1] = parser.call(Comma, next_states[-1])
-                next_states[-1] = parser.call(
-                    ProductionSpecifier, next_states[-1]
-                )
+                next_states[-1] = parser.call(ProductionSpecifier, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
                 break
@@ -221,9 +207,7 @@ class SequenceExpression(TransmuterNonterminalType):
                 next_states.append(next_states[-1])  # begin option
 
                 try:
-                    next_states[-1] = parser.call(
-                        IterationExpression, next_states[-1]
-                    )
+                    next_states[-1] = parser.call(IterationExpression, next_states[-1])
                     next_states.append(next_states[-1])  # begin iteration
 
                     while True:
@@ -245,9 +229,7 @@ class SequenceExpression(TransmuterNonterminalType):
                 next_states.append(next_states[-1])  # begin option
 
                 try:
-                    next_states[-1] = parser.call(
-                        PrimaryExpression, next_states[-1]
-                    )
+                    next_states[-1] = parser.call(PrimaryExpression, next_states[-1])
                     next_states.append(next_states[-1])  # begin iteration
 
                     while True:
@@ -281,9 +263,7 @@ class ConjunctionCondition(TransmuterNonterminalType):
         while True:
             try:
                 next_states[-1] = parser.call(DoubleAmpersand, next_states[-1])
-                next_states[-1] = parser.call(
-                    NegationCondition, next_states[-1]
-                )
+                next_states[-1] = parser.call(NegationCondition, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
                 break
@@ -330,12 +310,8 @@ class ProductionSpecifier(TransmuterNonterminalType):
 
                                 raise TransmuterInternalError()
 
-                            next_states[-1] = (
-                                next_states.pop()
-                            )  # end selection
-                            next_states[-1] = parser.call(
-                                Identifier, next_states[-1]
-                            )
+                            next_states[-1] = next_states.pop()  # end selection
+                            next_states[-1] = parser.call(Identifier, next_states[-1])
                         except TransmuterInternalError:
                             next_states.pop()
                         else:
@@ -343,9 +319,7 @@ class ProductionSpecifier(TransmuterNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.call(
-                                Ignore, next_states[-1]
-                            )
+                            next_states[-1] = parser.call(Ignore, next_states[-1])
                         except TransmuterInternalError:
                             next_states.pop()
                         else:
@@ -413,9 +387,7 @@ class IterationExpression(TransmuterNonterminalType):
                         for _ in transmuter_selection:  # begin selection
                             try:  # begin option
                                 next_states.append(next_states[-1])
-                                next_states[-1] = parser.call(
-                                    Asterisk, next_states[-1]
-                                )
+                                next_states[-1] = parser.call(Asterisk, next_states[-1])
                             except TransmuterInternalError:
                                 next_states.pop()
                             else:
@@ -423,9 +395,7 @@ class IterationExpression(TransmuterNonterminalType):
 
                             try:  # begin option
                                 next_states.append(next_states[-1])
-                                next_states[-1] = parser.call(
-                                    PlusSign, next_states[-1]
-                                )
+                                next_states[-1] = parser.call(PlusSign, next_states[-1])
                             except TransmuterInternalError:
                                 next_states.pop()
                             else:
@@ -491,12 +461,8 @@ class IterationExpression(TransmuterNonterminalType):
                         raise TransmuterInternalError()
 
                     next_states[-1] = next_states.pop()  # end selection
-                    next_states[-1] = parser.call(
-                        SelectionExpression, next_states[-1]
-                    )
-                    next_states[-1] = parser.call(
-                        RightCurlyBracket, next_states[-1]
-                    )
+                    next_states[-1] = parser.call(SelectionExpression, next_states[-1])
+                    next_states[-1] = parser.call(RightCurlyBracket, next_states[-1])
                 except TransmuterInternalError:
                     next_states.pop()
                 else:
@@ -530,9 +496,7 @@ class PrimaryExpression(TransmuterNonterminalType):
                     for _ in transmuter_selection:  # begin selection
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.call(
-                                OrdChar, next_states[-1]
-                            )
+                            next_states[-1] = parser.call(OrdChar, next_states[-1])
                         except TransmuterInternalError:
                             next_states.pop()
                         else:
@@ -540,9 +504,7 @@ class PrimaryExpression(TransmuterNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.call(
-                                QuotedChar, next_states[-1]
-                            )
+                            next_states[-1] = parser.call(QuotedChar, next_states[-1])
                         except TransmuterInternalError:
                             next_states.pop()
                         else:
@@ -550,9 +512,7 @@ class PrimaryExpression(TransmuterNonterminalType):
 
                         try:  # begin option
                             next_states.append(next_states[-1])
-                            next_states[-1] = parser.call(
-                                FullStop, next_states[-1]
-                            )
+                            next_states[-1] = parser.call(FullStop, next_states[-1])
                         except TransmuterInternalError:
                             next_states.pop()
                         else:
@@ -584,9 +544,7 @@ class PrimaryExpression(TransmuterNonterminalType):
 
                     try:  # begin optional
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.call(
-                            Condition, next_states[-1]
-                        )
+                        next_states[-1] = parser.call(Condition, next_states[-1])
                     except TransmuterInternalError:
                         next_states.pop()
                     else:
@@ -599,19 +557,13 @@ class PrimaryExpression(TransmuterNonterminalType):
             try:  # begin option
                 next_states.append(next_states[-1])
                 next_states[-1] = parser.call(LeftParenthesis, next_states[-1])
-                next_states[-1] = parser.call(
-                    SelectionExpression, next_states[-1]
-                )
-                next_states[-1] = parser.call(
-                    RightParenthesis, next_states[-1]
-                )
+                next_states[-1] = parser.call(SelectionExpression, next_states[-1])
+                next_states[-1] = parser.call(RightParenthesis, next_states[-1])
 
                 if Conditions.syntactic in parser.lexer.conditions:
                     try:  # begin optional
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.call(
-                            Condition, next_states[-1]
-                        )
+                        next_states[-1] = parser.call(Condition, next_states[-1])
                     except TransmuterInternalError:
                         next_states.pop()
                     else:
@@ -652,9 +604,7 @@ class PrimaryExpression(TransmuterNonterminalType):
 
                     try:  # begin optional
                         next_states.append(next_states[-1])
-                        next_states[-1] = parser.call(
-                            Condition, next_states[-1]
-                        )
+                        next_states[-1] = parser.call(Condition, next_states[-1])
                     except TransmuterInternalError:
                         next_states.pop()
                     else:
@@ -697,9 +647,7 @@ class OptionalExpression(TransmuterNonterminalType):
         for _ in transmuter_selection:  # begin selection
             try:  # begin option
                 next_states.append(next_states[-1])
-                next_states[-1] = parser.call(
-                    LeftSquareBracket, next_states[-1]
-                )
+                next_states[-1] = parser.call(LeftSquareBracket, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
             else:
@@ -707,9 +655,7 @@ class OptionalExpression(TransmuterNonterminalType):
 
             try:  # begin option
                 next_states.append(next_states[-1])
-                next_states[-1] = parser.call(
-                    LeftSquareBracketSolidus, next_states[-1]
-                )
+                next_states[-1] = parser.call(LeftSquareBracketSolidus, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
             else:
@@ -740,12 +686,8 @@ class PrimitiveCondition(TransmuterNonterminalType):
             try:  # begin option
                 next_states.append(next_states[-1])
                 next_states[-1] = parser.call(LeftParenthesis, next_states[-1])
-                next_states[-1] = parser.call(
-                    DisjunctionCondition, next_states[-1]
-                )
-                next_states[-1] = parser.call(
-                    RightParenthesis, next_states[-1]
-                )
+                next_states[-1] = parser.call(DisjunctionCondition, next_states[-1])
+                next_states[-1] = parser.call(RightParenthesis, next_states[-1])
             except TransmuterInternalError:
                 next_states.pop()
             else:
