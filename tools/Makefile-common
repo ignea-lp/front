@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+PREVIOUS_PKG ?= ignea
+CURRENT_PKG ?= ignea
+
 ROOT=$(CURRENT_PKG)/front/aether
 PYTHON_VERSION=3.12.3
 BLACK_VERSION=26.1.0

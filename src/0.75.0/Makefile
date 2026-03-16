@@ -19,6 +19,5 @@ PREVIOUS_PKG=transmuter
 PREVIOUS_SPEC_VERSION=0.3.0
 PREVIOUS_LIB_VERSION=0.2.0
 PREVIOUS_SRC_VERSION=0.74.0
-CURRENT_PKG=ignea
 
 include ../../tools/Makefile-common
