@@ -4,7 +4,7 @@
 # Ignea front-end, front-end libraries and utilities for the
 # Ignea language processing infrastructure
 # Copyright (C) 2024  Natan Junges <natanajunges@gmail.com>
-# Copyright (C) 2024, 2025  The Ignea Project
+# Copyright (C) 2024-2025  The Ignea Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
